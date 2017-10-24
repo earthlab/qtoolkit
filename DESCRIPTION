@@ -1,0 +1,15 @@
+Package: qtoolkit
+Title: qualtrics-toolkit
+Version: 0.0.1
+Authors@R: person("1love", "1papaya", email = "1love1papaya@gmail.com",
+           role = c("aut", "cre"))
+Description: Toolkit for processing and visualizing Qualtrics Surveys
+Depends: R (>= 3.2.3)
+Imports:
+    dplyr,
+    qsurvey,
+    magrittr
+License: MIT
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1

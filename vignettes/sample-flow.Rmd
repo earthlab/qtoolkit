@@ -1,0 +1,38 @@
+# Sample Workflow
+
+## Connect to Qualtrics API
+
+```{r}
+## connect using key saved in ~/.qualtrics_api_key
+connect_qualtrics("cuboulder")
+
+## connect using some API key passed as string
+connect_qualtrics("cuboulder", key = "abcdefghijklmnopqrstuvwxyz")
+```
+
+## Find and load surveys
+
+```{r}
+## Return a DF of all surveys, or ones which match a parameter
+s_list <- get_surveys()             # get all surveys
+s_list <- get_surveys(name="week")  # get all surveys who's name matches "week"
+s_list <- get_surveys(id="SV_")     # get all surveys who's id matches "SV_"
+
+## Load survey metadata from Qualtrics; return survey design object
+surveys <- load_survey()            # load all surveys
+surveys <- load_survey("week1")     # load surveys that match name "week1"
+surveys <- load_survey(s_list)      # load all surveys in DF s_list
+```
+
+## Get survey responses
+
+```{r}
+survey1 <- load_surveys("week1")    # grab week#1 survey
+
+## Get survey responses as a dataframe
+resp <- get_responses(survey1)      # get responses to all questions
+resp <- get_responses(survey1,      # get responses to question "Q10"
+                      question="Q10")
+resp <- get_responses(survey1,      # get responses w/ metadata
+                      metadata = TRUE)
+```
