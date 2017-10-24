@@ -33,44 +33,7 @@ devtools::install_github("earthlab/qtoolkit")
    
 ## Example Usage
 
-### Connecting to Qualtrics API
-
-```
-## connect using key saved in ~/.qualtrics_api_key
-connect_qualtrics("cuboulder")
-
-## connect using some API key passed as string
-connect_qualtrics("cuboulder", key = "abcdefghijklmnopqrstuvwxyz")
-```
-
-### Find and load surveys
-
-```
-## Find surveys
-s_list <- get_surveys()             # get all surveys
-s_list <- get_surveys(name="week")  # get all surveys who's name matches "week"
-s_list <- get_surveys(id="SV_")     # get all surveys who's id matches "SV_"
-
-## Load surveys
-surveys <- load_surveys(s_list)     # load all surveys returned by get_surveys
-survey1 <- surveys[[1]]             # grab first survey returned
-```
-
-### Using native qsurvey functions:
-
-```
-## Questions
-questions(survey1)
-
-## Responses
-responses(survey1$id)
-
-## Blocks
-blocks(survey1)
-
-## Choices
-choices(survey1)
-```
+Check out the vignettes/ folder for some example usage cases.
 
 ## Style Guide
 
