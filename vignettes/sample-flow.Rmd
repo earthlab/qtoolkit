@@ -14,9 +14,9 @@ connect_qualtrics("cuboulder", key = "abcdefghijklmnopqrstuvwxyz")
 
 ```{r}
 ## Return a DF of all surveys, or ones which match a parameter
-s_list <- get_surveys()             # get all surveys
-s_list <- get_surveys(name="week")  # get all surveys who's name matches "week"
-s_list <- get_surveys(id="SV_")     # get all surveys who's id matches "SV_"
+s_list <- get_survey()              # get all surveys
+s_list <- get_survey(name="week")   # get all surveys who's name matches "week"
+s_list <- get_survey(id="SV_")      # get all surveys who's id matches "SV_"
 
 ## Load survey metadata from Qualtrics; return survey design object
 surveys <- load_survey()            # load all surveys
