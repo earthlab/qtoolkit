@@ -45,36 +45,43 @@ get_responses <- function(survey,
   return(q)
 }
 
-#' get_questions
+#' get_question
 #'
-#' Get info about questions asked in a particular survey
+#' Get info about question(s) asked in a particular survey
 #'
-#' @importFrom dplyr select
-#' @importFrom dplyr starts_with
+#' @importFrom dplyr filter
 #' @export
 #' 
 #' @param survey Survey Design Object
-#' @param question Question Number
+#' @param question_name Question name (ie "Q10")
+#' @param question_id Question ID (ie "QID9")
 #'
 #' @return DF of matching questions
 
-get_questions <- function(survey,
-                          question = "Q") {
+get_question <- function(survey,
+                         question_name = "Q",
+                         question_id = "QID") {
 
-  ## Get survey questions from Qualtrics API
+  ## Get survey questions from qsurvey API
   qs <- qsurvey::questions(survey)
-  q_resp <- select(qs, starts_with("export_name"),
-                   starts_with("question_text"))
+
+  ## Filter questions by names passed
+  name_filter <- paste("^", question_name, sep="")
+  id_filter <- paste("^", question_id, sep="")
+  
+  q_resp <- filter(qs, grepl(name_filter, export_name),
+                   grepl(id_filter, question_id))
 
   ## Check if question has been matched or no
-  if (length(q_resp) < 2) {
-    stop("No questions match '", question, "'")
+  if (length(q_resp) == 0) {
+    stop("No questions match question_name~='", question_name,
+         "' and question_id~='", question_id, "'")
   }
 
   ## Rename column question_text to question_title
   ## Add column question_text as stripped HTML from question_title
-  q_resp$question_title <- q_resp$question_text
-  q_resp$question_text <- strip_html(q_resp$question_text)
+  q_resp$question_raw <- q_resp$question_text
+  q_resp$question_text <- strip_html(q_resp$question_raw)
 
   return(q_resp)
 }
