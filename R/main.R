@@ -73,7 +73,7 @@ get_question <- function(survey,
                    grepl(id_filter, question_id))
 
   ## Check if question has been matched or no
-  if (length(q_resp) == 0) {
+  if (nrow(q_resp) == 0) {
     stop("No questions match question_name~='", question_name,
          "' and question_id~='", question_id, "'")
   }
