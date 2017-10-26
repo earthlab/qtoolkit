@@ -53,20 +53,20 @@ get_responses <- function(survey,
 #' @export
 #' 
 #' @param survey Survey Design Object
-#' @param question_name Question name (ie "Q10")
+#' @param question_num Question number (ie "Q10")
 #' @param question_id Question ID (ie "QID9")
 #'
 #' @return DF of matching questions
 
 get_question <- function(survey,
-                         question_name = "Q",
+                         question_num = "Q",
                          question_id = "QID") {
 
   ## Get survey questions from qsurvey API
   qs <- qsurvey::questions(survey)
 
   ## Filter questions by names passed
-  name_filter <- paste("^", question_name, sep="")
+  name_filter <- paste("^", question_num, sep="")
   id_filter <- paste("^", question_id, sep="")
   
   q_resp <- filter(qs, grepl(name_filter, export_name),
@@ -74,7 +74,7 @@ get_question <- function(survey,
 
   ## Check if question has been matched or no
   if (nrow(q_resp) == 0) {
-    stop("No questions match question_name~='", question_name,
+    stop("No questions match question_name~='", question_num,
          "' and question_id~='", question_id, "'")
   }
 
