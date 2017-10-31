@@ -130,10 +130,8 @@ load_survey <- function(surveys = "",
     # Get survey design from API
     designs_vector[[i]] <- qsurvey::design(surveys[i,]$id)
 
-    # Check if there's a duplicate question ID
-    qs_test <- get_question(designs_vector[[i]])
-
-    
+    # Check if survey has duplicate question number
+    check_duplicate_question(designs_vector[[i]])
   }
 
   # Return one survey design if only one match
