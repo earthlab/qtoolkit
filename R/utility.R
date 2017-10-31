@@ -31,3 +31,35 @@ strip_html <- function(text, consolidate = TRUE) {
 
   return(stripped)
 }
+
+#' check_duplicate_question
+#'
+#' Check whether a survey has a duplicate question number
+#'
+#' @param survey Survey to check
+#'
+#' @export
+
+check_duplicate_question <- function(survey) {
+  
+  # Get questions
+  qs_test <- get_question(survey)
+  
+  # Select just what we're looking at
+  qs_test <- dplyr::select(qs_test, question_id, question_num)
+
+  # Get rows with distinct question_id
+  qs_test <- dplyr::distinct(qs_test, question_id, question_num)
+  
+  # Count distinct question_ids
+  qs_test <- dplyr::count(qs_test, question_num)
+
+  # Select if any questions have over 1 record and error if so
+  qs_test <- dplyr::filter(qs_test, n>1)
+
+  if ( dim(qs_test)[1] > 0 ) {
+    err <- paste("Error: ", survey$name, " has duplicate question ",
+                 qs_test[1,1], sep="")
+    stop(err)
+  }
+}
