@@ -9,24 +9,15 @@
 #' @export
 
 strip_html <- function(text, consolidate = TRUE) {
-  ## Strip HTML tags
-  stripped <- gsub("<.*?>", "", text)
-
-  ## Turn &#39; into apostrophe
-  stripped <- gsub("&#39;","'", stripped)
-
-  ## Turn &amp; to amperstand
-  stripped <- gsub("&amp;", "&", stripped)
+  
+  stripped <- gsub("<.*?>", "", text)      ## Strip HTML tags
+  stripped <- gsub("&#39;","'", stripped)  ## Turn &#39; into apostrophe
+  stripped <- gsub("&amp;", "&", stripped) ## Turn &amp; to amperstand
 
   if (consolidate) {
-    ## Turn all newlines into //
-    stripped <- gsub("\n", " // ", stripped)
-
-    ## Consolidate 2 whitespace characters into a one space
-    stripped <- gsub("\\s{2,}", " ", stripped)
-
-    ## Strip whitespace from start and end of string
-    stripped <- trimws(stripped)
+    stripped <- gsub("\n", " // ", stripped)   ## Turn all newlines into //
+    stripped <- gsub("\\s{2,}", " ", stripped) ## Consolidate 2 whitespace characters into a one space
+    stripped <- trimws(stripped)               ## Strip whitespace from start and end of string
   }
 
   return(stripped)
@@ -41,16 +32,14 @@ strip_html <- function(text, consolidate = TRUE) {
 #' @export
 
 check_duplicate_question <- function(survey) {
-  
-  # Get questions
-  qs_test <- get_question(survey)
-  
-  # Select just what we're looking at
-  qs_test <- dplyr::select(qs_test, question_id, question_num)
 
-  # Get rows with distinct question_id
-  qs_test <- dplyr::distinct(qs_test, question_id, question_num)
-  
+  # Create a DF of question_ids and question_nums
+  qs_test <- survey$questions
+  qs_test <- lapply(qs_test, function(x) x$questionName)
+  qs_test <- data.frame(question_id = names(qs_test),
+                        question_num = unlist(qs_test),
+                        row.names = NULL)
+
   # Count distinct question_ids
   qs_test <- dplyr::count(qs_test, question_num)
 
