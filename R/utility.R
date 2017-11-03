@@ -15,7 +15,7 @@ strip_html <- function(text, consolidate = TRUE) {
   stripped <- gsub("&amp;", "&", stripped) ## Turn &amp; to amperstand
 
   if (consolidate) {
-    stripped <- gsub("\n", " // ", stripped)   ## Turn all newlines into //
+    stripped <- gsub("\n", " ", stripped)   ## Turn all newlines into //
     stripped <- gsub("\\s{2,}", " ", stripped) ## Consolidate 2 whitespace characters into a one space
     stripped <- trimws(stripped)               ## Strip whitespace from start and end of string
   }
@@ -25,7 +25,7 @@ strip_html <- function(text, consolidate = TRUE) {
 
 #' check_duplicate_question
 #'
-#' Check whether a survey has a duplicate question number
+#' Check whether a survey has a duplicate question number.
 #'
 #' @param survey Survey to check
 #'
@@ -33,13 +33,11 @@ strip_html <- function(text, consolidate = TRUE) {
 
 check_duplicate_question <- function(survey) {
 
-  # Create a DF of question_ids and question_nums
-  qs_test <- survey$questions
-  qs_test <- lapply(qs_test, function(x) x$questionName)
-  qs_test <- data.frame(question_id = names(qs_test),
-                        question_num = unlist(qs_test),
-                        row.names = NULL)
-
+  # Get DF of question_ids and question_nums
+  qs_map <- data.frame(question_id = names(survey$questionMap),
+                       question_num = unlist(survey$questionMap),
+                       row.names = NULL)
+  
   # Count distinct question_ids
   qs_test <- dplyr::count(qs_test, question_num)
 
