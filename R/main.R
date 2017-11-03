@@ -4,6 +4,7 @@
 #'
 #' @importFrom dplyr select
 #' @importFrom dplyr starts_with
+#' @importFrom
 #' @export
 #' 
 #' @param survey Survey Object (or ID)
@@ -14,7 +15,10 @@
 
 get_responses <- function(survey,
                           question = "Q",
-                          metadata = FALSE) {
+                          metadata = FALSE,
+                          melt = TRUE,
+                          rm.other = TRUE,
+                          rm.blank = TRUE) {
 
   ## Check if survey object or survey ID is passed
   if (!is.character(survey)) {
@@ -37,10 +41,24 @@ get_responses <- function(survey,
   ## Append metadata to the response if specified
   if (metadata == TRUE) {
     q_metadata <- select(resp, -starts_with("Q"))
-    q <- merge(q_metadata, q_resp)
+    q_resp<- merge(q_metadata, q_resp)
   } else {
-    q <- select(q_resp, starts_with(question))
+    q_resp<- select(q_resp, starts_with(question))
   }
+
+  ## Melt the data if told so
+  if (melt == TRUE) {
+    q_resp <- tidyr::gather(q_resp)
+
+    if (rm.other == TRUE) {
+      q_resp <- filter(q_resp, !str_detect(value, "Other"),
+                       !grepl("_TEXT$", key))
+    }
+
+    if (rm.blank == TRUE) {
+      q_resp <- filter(q_resp, !(value == ""))
+    }
+  }    
 
   return(q)
 }
@@ -123,7 +141,8 @@ get_choices <- function(survey,
   num_filter <- paste("^", question_num, sep="")
   id_filter <- paste("^", question_id, sep="")
 
-  c_resp <- filter(cs, grepl(id_filter, question_id))
+  c_resp <- filter(cs, grepl(id_filter, question_id),
+                   grepl(num_filter, question_num))
 
   return(c_resp)
 }
