@@ -39,7 +39,7 @@ check_duplicate_question <- function(survey) {
                        row.names = NULL)
   
   # Count distinct question_ids
-  qs_test <- dplyr::count(qs_test, question_num)
+  qs_test <- dplyr::count(qs_map, question_num)
 
   # Select if any questions have over 1 record and error if so
   qs_test <- dplyr::filter(qs_test, n>1)
