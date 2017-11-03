@@ -45,7 +45,7 @@ get_responses <- function(survey,
   return(q)
 }
 
-#' get_question
+#' get_questions
 #'
 #' Get info about question(s) asked in a particular survey
 #'
@@ -58,23 +58,23 @@ get_responses <- function(survey,
 #'
 #' @return DF of matching questions
 
-get_question <- function(survey,
-                         question_num = "Q",
-                         question_id = "QID") {
+get_questions <- function(survey,
+                          question_num = "Q",
+                          question_id = "QID") {
 
   ## Get survey questions from qsurvey API
   qs <- qsurvey::questions(survey)
 
   ## Filter questions by names passed
-  name_filter <- paste("^", question_num, sep="")
+  num_filter <- paste("^", question_num, sep="")
   id_filter <- paste("^", question_id, sep="")
   
-  q_resp <- filter(qs, grepl(name_filter, export_name),
+  q_resp <- filter(qs, grepl(num_filter, export_name),
                    grepl(id_filter, question_id))
 
   ## Check if question has been matched or no
   if (nrow(q_resp) == 0) {
-    stop("No questions match question_name~='", question_num,
+    stop("No questions match question_num~='", question_num,
          "' and question_id~='", question_id, "'")
   }
 
@@ -83,5 +83,47 @@ get_question <- function(survey,
   q_resp$question_raw <- q_resp$question_text
   q_resp$question_text <- strip_html(q_resp$question_raw)
 
+  ## Add question number column (turns Q9_1 into Q9)
+  q_resp$question_num <- sub("^(Q[0-9]+).*", "\\1",
+                             q_resp$export_name)
+
   return(q_resp)
+}
+
+
+#' get_choices
+#'
+#' Get possible choices for a particular question
+#'
+#' @importFrom dplyr filter
+#' @export
+#'
+#' @param survey Survey Design Object
+#' @param question_num Question number (ie "Q10")
+#' @param question_id Question ID (ie "QID9")
+#'
+#' @return DF of choices for each question
+#'
+#' @export
+
+get_choices <- function(survey,
+                        question_num = "Q",
+                        question_id = "QID") {
+
+  ## Get choices from qsurvey API
+  cs <- qsurvey::choices(survey)
+
+  ## Get DF question_id => question_num map & join to choices
+  qs_map <- data.frame(question_id = names(survey$questionMap),
+                       question_num = unlist(survey$questionMap),
+                       row.names = NULL)
+  cs <- merge(qs_map, cs)
+
+  ## Filter choices by question num/id
+  num_filter <- paste("^", question_num, sep="")
+  id_filter <- paste("^", question_id, sep="")
+
+  c_resp <- filter(cs, grepl(id_filter, question_id))
+
+  return(c_resp)
 }
