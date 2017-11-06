@@ -4,7 +4,7 @@
 \alias{get_choices}
 \title{get_choices}
 \usage{
-get_choices(survey, question_num = "Q", question_id = "QID")
+get_choices(survey, question_num = "Q.*", question_id = "QID.*")
 }
 \arguments{
 \item{survey}{Survey Design Object}

@@ -4,14 +4,21 @@
 \alias{get_responses}
 \title{get_responses}
 \usage{
-get_responses(survey, question = "Q", metadata = FALSE)
+get_responses(survey, question_num = "Q.*", metadata = FALSE, melt = TRUE,
+  rm.other = TRUE, rm.blank = TRUE)
 }
 \arguments{
 \item{survey}{Survey Object (or ID)}
 
-\item{question}{Question Number}
-
 \item{metadata}{Include metadata about each participant in DF}
+
+\item{melt}{Melt data from a DF into key=>value DF}
+
+\item{rm.other}{Remove "Other" responses from MC questions}
+
+\item{rm.blank}{Remove Blank responses from MC/matrix questions}
+
+\item{question}{Question Number}
 }
 \value{
 DF of survey question answers
