@@ -143,16 +143,16 @@ get_choices <- function(survey,
   cs <- merge(qs_map, cs)
 
   ## Filter choices by question num/id
-  num_filter <- paste("^", question_num, sep="")
-  id_filter <- paste("^", question_id, sep="")
+  num_filter <- paste("^", question_num, "(\\_|$)",  sep="")
+  id_filter <- paste("^", question_id, "(\\_|$)", sep="")
 
   c_resp <- filter(cs, grepl(id_filter, question_id),
                    grepl(num_filter, question_num))
 
   ## Return just a vector of choices if question num or id is specified
+  ## Choices are returned in order they're displayed on survey
   if (question_num != "Q.*" || question_id != "QID.*") {
-    c_resp <- unique(c_resp$choice_text)
-    c_resp <- c_resp[order(c_resp)]
+    c_resp <- unique(c_resp[order(c_resp$choice_id),]$choice_text)
   }
 
   return(c_resp)
