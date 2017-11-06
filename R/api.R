@@ -54,12 +54,15 @@ connect_qualtrics <- function(subdomain,
 #' Select surveys available, optionally filtering by name
 #'
 #' @param name Complete or partial name of survey
+#' @param id Survey ID if known
+#' @param match.exact Match exact name of survey or use wildcards
 #'
 #' @return DF of matched surveys
 #' @export
 
 get_survey <- function(name = "",
-                       id = "") {
+                       id = "",
+                       match.exact = TRUE) {
 
   # Whether to filter by ID or name depending what's passed
   filters <- list(name = name,
@@ -70,9 +73,13 @@ get_survey <- function(name = "",
   # Get all surveys
   all_surveys <- qsurvey::surveys()
 
-  # Build regex to use name parameter with wildcards around
-  regex <- paste(".*", filters[[filter]], ".*", sep = "")
-
+  # Build regex to match exact or not
+  if (exact == TRUE) {
+    regex <- paste("^", filters[[filter]], "$", sep = "")
+  } else {
+    regex <- paste(".*", filters[[filter]], ".*", sep = "")
+  }
+    
   # Get matches from all surveys, and sort by name
   survey_matches <- all_surveys[grep(regex, all_surveys[[filter]]),]
   survey_matches <- survey_matches[order(survey_matches$name),]
@@ -91,16 +98,19 @@ get_survey <- function(name = "",
 #'
 #' @param surveys DF of surveys with survey ids and names, or survey name
 #' @param verbose Let user know full name & surveyID of selected survey
+#' @param match.exact Match exact survey name or use wildcards
 #'
 #' @return If one match, return design object of survey. If many, return list of design objects
 #' @export
 
 load_survey <- function(surveys = "",
-                        verbose = FALSE) {
+                        verbose = TRUE,
+                        match.exact = TRUE) {
 
   # Check if user is specifying survey name or DF
   if (is.character(surveys)) {
-    surveys <- get_survey(surveys)
+    surveys <- get_survey(surveys,
+                          match.exact = match.exact)
   } else if (!is.data.frame(surveys)) {
     stop("`surveys` must be a data frame or name")
   }

@@ -4,12 +4,14 @@
 \alias{load_survey}
 \title{load_survey}
 \usage{
-load_survey(surveys = "", verbose = FALSE)
+load_survey(surveys = "", verbose = TRUE, match.exact = TRUE)
 }
 \arguments{
 \item{surveys}{DF of surveys with survey ids and names, or survey name}
 
 \item{verbose}{Let user know full name & surveyID of selected survey}
+
+\item{match.exact}{Match exact survey name or use wildcards}
 }
 \value{
 If one match, return design object of survey. If many, return list of design objects

@@ -4,10 +4,14 @@
 \alias{get_survey}
 \title{get_survey}
 \usage{
-get_survey(name = "", id = "")
+get_survey(name = "", id = "", match.exact = TRUE)
 }
 \arguments{
 \item{name}{Complete or partial name of survey}
+
+\item{id}{Survey ID if known}
+
+\item{match.exact}{Match exact name of survey or use wildcards}
 }
 \value{
 DF of matched surveys
