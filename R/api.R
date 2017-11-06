@@ -74,7 +74,7 @@ get_survey <- function(name = "",
   all_surveys <- qsurvey::surveys()
 
   # Build regex to match exact or not
-  if (exact == TRUE) {
+  if (match.exact == TRUE) {
     regex <- paste("^", filters[[filter]], "$", sep = "")
   } else {
     regex <- paste(".*", filters[[filter]], ".*", sep = "")
