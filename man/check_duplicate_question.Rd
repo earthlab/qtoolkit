@@ -4,10 +4,12 @@
 \alias{check_duplicate_question}
 \title{check_duplicate_question}
 \usage{
-check_duplicate_question(survey)
+check_duplicate_question(survey, fatal = FALSE)
 }
 \arguments{
 \item{survey}{Survey to check}
+
+\item{fatal}{Stop execution if duplicate question, or no}
 }
 \description{
 Check whether a survey has a duplicate question number.
