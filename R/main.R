@@ -8,7 +8,7 @@
 #' @export
 #' 
 #' @param survey Survey Object (or ID)
-#' @param question Question Number
+#' @param question Question Number or Vector of Question Numbers
 #' @param metadata Include metadata about each participant in DF
 #' @param melt Melt data from a DF into key=>value DF
 #' @param rm.other Remove "Other" responses from MC questions
@@ -27,9 +27,15 @@ get_responses <- function(survey,
   if (!is.character(survey)) {
     survey <- survey$id
   }
-
+  
   ## Get survey responses from Qualtrics API
-  id_filter <- paste("^", question_num, "(\\_|$)", sep = "")
+  question_num <- paste(question_num, collapse="|")
+  
+  if ( is.vector(question_num) ) {
+    id_filter <- paste("^(", question_num, ")(\\_|$)", sep = "")
+  } else {
+    id_filter <- paste("^", question_num, "(\\_|$)", sep = "")
+  }
   
   resp <- qsurvey::responses(survey)  
   q_resp <- select(resp, starts_with("ResponseID"),

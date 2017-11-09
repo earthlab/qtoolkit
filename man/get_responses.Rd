@@ -18,7 +18,7 @@ get_responses(survey, question_num = "Q.*", metadata = FALSE, melt = TRUE,
 
 \item{rm.blank}{Remove Blank responses from MC/matrix questions}
 
-\item{question}{Question Number}
+\item{question}{Question Number or Vector of Question Numbers}
 }
 \value{
 DF of survey question answers
