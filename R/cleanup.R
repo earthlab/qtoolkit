@@ -7,7 +7,7 @@ split_strings = function(string, n_char = 35) {
   #' a_long_string <- "this is a string that i'd like to wrap"
   #' split_strings(a_long_string, n_char = 15)
 
-  paste(strwrap(string, width=nwrap), collapse="\n")
+  paste(strwrap(string, width = nwrap), collapse = "\n")
 }
 
 split_strings <-  Vectorize(split_strings)
