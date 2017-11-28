@@ -11,12 +11,12 @@
 strip_html <- function(text,
                        consolidate = TRUE) {
   
-  stripped <- gsub("<.*?>", "", text)      ## Strip HTML tags
+  stripped <- gsub("<.*?>", " ", text)      ## Strip HTML tags
   stripped <- gsub("&#39;","'", stripped)  ## Turn &#39; into apostrophe
   stripped <- gsub("&amp;", "&", stripped) ## Turn &amp; to amperstand
 
   if (consolidate) {
-    stripped <- gsub("\n", " ", stripped)      ## Turn all newlines into //
+    stripped <- gsub("\n", " ", stripped)      ## Turn all newlines into spaces
     stripped <- gsub("\\s{2,}", " ", stripped) ## Consolidate 2 whitespace characters into a one space
     stripped <- trimws(stripped)               ## Strip whitespace from start and end of string
   }
