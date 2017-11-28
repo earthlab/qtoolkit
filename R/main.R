@@ -66,7 +66,7 @@ get_responses <- function(survey,
                        !grepl("_TEXT$", key))
     }
 
-    if (rm.blank == TRUE) {
+    if (rm.blank == FALSE) {
       q_resp <- filter(q_resp, !(value == ""))
     }
   }    

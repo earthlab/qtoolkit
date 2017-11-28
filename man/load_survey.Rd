@@ -4,18 +4,19 @@
 \alias{load_survey}
 \title{load_survey}
 \usage{
-load_survey(surveys = "", verbose = TRUE, match.exact = TRUE)
+load_survey(filter = "", match.exact = TRUE, verbose = TRUE)
 }
 \arguments{
-\item{surveys}{DF of surveys with survey ids and names, or survey name}
+\item{filter}{DF of surveys with survey ids and names, or survey name}
 
-\item{verbose}{Let user know full name & surveyID of selected survey}
+\item{match.exact}{Match exact survey name or partial}
 
-\item{match.exact}{Match exact survey name or use wildcards}
+\item{verbose}{User will see which surveys are being loaded}
 }
 \value{
 If one match, return design object of survey. If many, return list of design objects
 }
 \description{
-Select surveys with a fragment of the survey's name
+Load all metadata of specific survey(s) from API and return
+survey design object
 }

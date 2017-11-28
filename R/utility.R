@@ -8,7 +8,8 @@
 #' @return Text with HTML stripped
 #' @export
 
-strip_html <- function(text, consolidate = TRUE) {
+strip_html <- function(text,
+                       consolidate = TRUE) {
   
   stripped <- gsub("<.*?>", "", text)      ## Strip HTML tags
   stripped <- gsub("&#39;","'", stripped)  ## Turn &#39; into apostrophe
@@ -25,14 +26,16 @@ strip_html <- function(text, consolidate = TRUE) {
 
 #' check_duplicate_question
 #'
-#' Check whether a survey has a duplicate question number.
+#' Check whether a survey has a duplicate question number and report
+#' to user if it does
 #'
-#' @param survey Survey to check
+#' @param survey Survey object to check
 #' @param fatal Stop execution if duplicate question, or no
 #'
 #' @export
 
-check_duplicate_question <- function(survey, fatal = FALSE) {
+check_duplicate_question <- function(survey,
+                                     fatal = FALSE) {
 
   # Get DF of question_ids and question_nums
   qs_map <- data.frame(question_id = names(survey$questionMap),
@@ -49,8 +52,8 @@ check_duplicate_question <- function(survey, fatal = FALSE) {
   if ( num_dupes > 0 ) {
     for ( dupe_num in 1:num_dupes ) {
       record <- qs_test[dupe_num,]
-      msg <- paste0(survey$name, " has ", record$n,
-                    " entries for question ", record$question_num)
+      msg <- paste0("'", survey$name, "' has ", record$n,
+                    " questions named '", record$question_num, "'")
       
       if ( fatal == TRUE ) {
         stop(msg, call. = FALSE)

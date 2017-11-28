@@ -10,24 +10,33 @@ connect_qualtrics("cuboulder")
 connect_qualtrics("cuboulder", key = "abcdefghijklmnopqrstuvwxyz")
 ```
 
-## Find and load surveys
+## List Available Surveys
 
 ```{r}
-## Return a DF of all surveys, or ones which match a parameter
-s_list <- get_survey()              # get all surveys
-s_list <- get_survey(name="week")   # get all surveys who's name matches "week"
-s_list <- get_survey(id="SV_")      # get all surveys who's id matches "SV_"
+## Return DF of surveys to available with API key & Login combo
 
+s_list <- get_surveys()        # Find all surveys available
+s_list <- get_surveys("week")  # Find surveys whos name matches "week"
+```
+
+## Load Surveys
+
+```{r}
 ## Load survey metadata from Qualtrics; return survey design object
-surveys <- load_survey()            # load all surveys
-surveys <- load_survey("week1")     # load surveys that match name "week1"
-surveys <- load_survey(s_list)      # load all surveys in DF s_list
+surveys <- load_survey()                     # load all surveys
+surveys <- load_survey("week1-survey")       # load surveys with exact name "week1-survey"
+surveys <- load_survey("SV_abcdefghijklmno") # load survey with ID SV_abcdefghijklmno
+surveys <- load_survey(s_list)               # load all surveys in DF s_list
+
+surveys <- load_survey("week",
+                       match.exact = FALSE) # load all surveys matching "week"
+
 ```
 
 ## Get survey responses
 
 ```{r}
-survey1 <- load_surveys("week1")    # grab week#1 survey
+survey1 <- load_survey("week1")    # grab week#1 survey
 
 ## Get survey responses as a dataframe
 resp <- get_responses(survey1)      # get responses to all questions
