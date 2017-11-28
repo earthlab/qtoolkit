@@ -4,7 +4,7 @@
 \alias{get_responses}
 \title{get_responses}
 \usage{
-get_responses(survey, question_num = "Q.*", metadata = FALSE, melt = TRUE,
+get_responses(survey, question_num = "Q.*", metadata = TRUE, melt = FALSE,
   rm.other = TRUE, rm.blank = TRUE)
 }
 \arguments{

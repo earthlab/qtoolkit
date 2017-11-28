@@ -18,8 +18,8 @@
 
 get_responses <- function(survey,
                           question_num = "Q.*",
-                          metadata = FALSE,
-                          melt = TRUE,
+                          metadata = TRUE,
+                          melt = FALSE,
                           rm.other = TRUE,
                           rm.blank = TRUE) {
 
