@@ -17,7 +17,7 @@
 #' @return DF of survey question answers
 
 get_responses <- function(survey,
-                          question_num = "Q.*",
+                          question_num = ".*",
                           metadata = TRUE,
                           melt = FALSE,
                           rm.other = TRUE,
@@ -89,7 +89,7 @@ get_responses <- function(survey,
 #' @return DF of matching questions
 
 get_questions <- function(survey,
-                          question_num = "Q.*",
+                          question_num = ".*",
                           question_id = "QID.*") {
 
   ## Get survey questions from qsurvey API
