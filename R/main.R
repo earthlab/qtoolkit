@@ -79,6 +79,7 @@ get_responses <- function(survey,
 #' Get info about question(s) asked in a particular survey
 #'
 #' @importFrom dplyr filter
+#' @importFrom tidyr gather
 #' @export
 #' 
 #' @param survey Survey Design Object
