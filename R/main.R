@@ -137,7 +137,7 @@ get_questions <- function(survey,
 #' @export
 
 get_choices <- function(survey,
-                        question_num = "Q.*",
+                        question_num = ".*",
                         question_id = "QID.*") {
 
   ## Get choices from qsurvey API
