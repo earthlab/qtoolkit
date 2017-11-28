@@ -8,7 +8,9 @@ get_responses(survey, question_num = ".*", metadata = TRUE, melt = FALSE,
   rm.other = TRUE, rm.blank = TRUE)
 }
 \arguments{
-\item{survey}{Survey Object (or ID)}
+\item{survey}{Survey Object}
+
+\item{question_num}{Question Number or Vector of Question Numbers}
 
 \item{metadata}{Include metadata about each participant in DF}
 
@@ -17,8 +19,6 @@ get_responses(survey, question_num = ".*", metadata = TRUE, melt = FALSE,
 \item{rm.other}{Remove "Other" responses from MC questions}
 
 \item{rm.blank}{Remove Blank responses from MC/matrix questions}
-
-\item{question}{Question Number or Vector of Question Numbers}
 }
 \value{
 DF of survey question answers
