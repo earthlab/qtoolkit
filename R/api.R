@@ -113,7 +113,7 @@ qapi_request <- function(verb,
 
   ## If list is paginated, request more if chosen
   if (!is.null(qapi_resp$result$nextPage)) {
-    new_resp <- qapi_send(verb, qapi_resp$result$nextPage, data, all.results)
+    new_resp <- qapi_request(verb, qapi_resp$result$nextPage, data, all.results)
 
     qapi_resp$result$elements <- rbind(qapi_resp$result$elements,
                                        new_resp$result$elements)
