@@ -49,6 +49,80 @@ connect_qualtrics <- function(subdomain,
   test <- withCallingHandlers({ qsurvey::surveys() }, error = error_fn)
 }
 
+#' qapi_request
+#'
+#' Send request to Qualtrics API
+#'
+#' @importFrom assert_that assert_that
+#'
+#' @param verb Request type (GET, POST, ...)
+#' @param method API call method (surveys, reponseexports, ...) or full API URL
+#' @param data Named list with request payload data
+#' @param all.results T or F, to return all results when paginated or just one
+#' 
+#' @return Named list of JSON decoded response content
+#' @export
+
+qapi_request <- function(verb,
+                         method,
+                         data = list(),
+                         all.results = FALSE) {
+
+  ## Input Validation
+  assert_that(is.string(verb))
+  assert_that(is.string(method))
+  assert_that(is.list(data))
+  
+  auth <- getOption("QAPI_AUTH")
+  verb <- toupper(verb)
+
+  if (is.null(auth)) {
+    stop("Must first establish API connection with `qualtrics_connect()`")
+  }
+
+  if (missing(method)) {
+    stop("Method must be specified for Qualtrics API call")
+  }
+
+  # If method string has full address use that, otherwise build API URL
+  if (grepl("^https*://", method)) {
+    qapi_url <- method
+  } else {
+    qapi_url <- paste0(auth$base_url, method)
+  }
+
+  ## Set up & send API Request, parse response
+  qapi_dat <- jsonlite::toJSON(data)
+  qapi_hdr <- httr::add_headers(`X-API-TOKEN` = auth$api_key,
+                                `User-Agent` = "qtoolkit",
+                                `Content-type` = "application/json")
+
+  httr_req <- getFromNamespace(verb, "httr")
+  qapi_req <- httr_req(qapi_url, qapi_hdr, query = data)
+
+  qapi_raw <- httr::content(qapi_req, "text", encoding = "UTF-8")
+  qapi_resp <- jsonlite::fromJSON(qapi_raw)
+
+  ## Check for errors
+  if (httr::http_error(qapi_req)) {
+    err_status <- qapi_resp$meta$httpStatus
+    err_msg <- qapi_resp$meta$error$errorMessage
+
+    stop("HTTP Error (", err_status, "): ", err_msg)
+  }
+
+  ## If list is paginated, request more if chosen
+  if (!is.null(qapi_resp$result$nextPage)) {
+    new_resp <- qapi_send(verb, qapi_resp$result$nextPage, data, all.results)
+
+    qapi_resp$result$elements <- rbind(qapi_resp$result$elements,
+                                       new_resp$result$elements)
+    qapi_resp$result$nextPage <- NULL
+  }
+
+  return(qapi_resp)
+}
+
 #' get_surveys
 #'
 #' Select surveys available, optionally matching survey name or ID.
