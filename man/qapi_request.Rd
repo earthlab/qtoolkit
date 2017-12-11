@@ -5,7 +5,7 @@
 \title{qapi_request}
 \usage{
 qapi_request(verb, method, data = list(), content.as = "text",
-  auth = NULL)
+  auth = NULL, all.results = TRUE)
 }
 \arguments{
 \item{verb}{Request type (GET, POST, ...)}
@@ -16,7 +16,9 @@ qapi_request(verb, method, data = list(), content.as = "text",
 
 \item{content.as}{"text" or "raw" depending on if JSON or raw data returned}
 
-\item{auth}{Qualtrics API authentication to use,}
+\item{auth}{Qualtrics API authentication to use}
+
+\item{all.results}{Return all results if paginated, or just one page}
 }
 \value{
 Named list of JSON decoded response content

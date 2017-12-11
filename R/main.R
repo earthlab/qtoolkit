@@ -17,8 +17,7 @@ list_surveys <- function(filter = "",
   match.exact <- if (filter.prop == "id") TRUE else match.exact
 
   # Get all surveys
-  qapi_req <- qapi_request("GET", "surveys")
-  all_surveys <- qapi_req$result$elements
+  all_surveys <- qapi_list_surveys()
 
   # Build regex to match exact or not
   if (match.exact == TRUE) {
@@ -68,7 +67,7 @@ get_survey <- function(filter = "",
 
     # Error if passed DF has insufficient info
     if (!("id" %in% survey_cols) || !("name" %in% survey_cols)) {
-      stop("`surveys` must contain 'id' and 'name' columns")
+      stop("`filter` must contain 'id' and 'name' columns")
     }
 
   } else {
@@ -79,8 +78,8 @@ get_survey <- function(filter = "",
   num_matched <- dim(surveys)[1]
   
   # Load design objects of each survey into list
-  designs_vector <- vector(mode = "list",
-                           length = num_matched)
+  surveys_vec <- vector(mode = "list",
+                        length = num_matched)
   
   for ( i in 1:num_matched ) {
     
@@ -91,18 +90,18 @@ get_survey <- function(filter = "",
     }
 
     # Get survey design from API
-    designs_vector[[i]] <- qsurvey::design(surveys[i,]$id)
+    surveys_vec[[i]] <- qapi_get_survey(surveys[i,]$id)
 
     # Check if survey has duplicate question number
-    check_duplicate_question(designs_vector[[i]])
+    check_duplicate_question(surveys_vec[[i]])
   }
 
   # Return one survey design if only one match
   # If multiple matches, return a list
   if (num_matched == 1) {
-    return(designs_vector[[1]])
+    return(surveys_vec[[1]])
   } else {
-    return(designs_vector)
+    return(surveys_vec)
   }
 }
 
@@ -135,7 +134,7 @@ get_responses <- function(survey,
   question_num <- paste(question_num, collapse = "|")
   num_filter <- paste0("^(", question_num, ")(\\_|$)")
   
-  resp <- qsurvey::responses(survey)
+  resp <- qapi_response_export(
   q_resp <- select(resp, starts_with("ResponseID"),
                    matches(num_filter))
 

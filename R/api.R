@@ -8,6 +8,7 @@
 #' @param subdomain Qualtrics subdomain
 #'
 #' @return String of Qualtrics API base URL
+#' @export
 
 qapi_get_base_url <- function(subdomain) {
   assert_that(is.string(subdomain))
@@ -84,7 +85,8 @@ qapi_test <- function(subdomain,
   test_auth <- list(subdomain = subdomain,
                     api_key = key)
   
-  test_req <- qapi_request("GET", "surveys", auth = test_auth)
+  test_req <- qapi_request("GET", "surveys", auth = test_auth,
+                           all.results = FALSE)
   
   if (!is.null(test_req) & !identical(test_req, FALSE)) {
     cat("Connection successful! (subdomain='", subdomain, "')\n",
@@ -131,7 +133,8 @@ qapi_get_auth <- function() {
 #' @param method API call method (surveys, reponseexports, ...) or full API URL
 #' @param data Named list with request payload data
 #' @param content.as "text" or "raw" depending on if JSON or raw data returned
-#' @param auth Qualtrics API authentication to use, 
+#' @param auth Qualtrics API authentication to use
+#' @param all.results Return all results if paginated, or just one page
 #' 
 #' @return Named list of JSON decoded response content
 #' @export
@@ -140,7 +143,8 @@ qapi_request <- function(verb,
                          method,
                          data = list(),
                          content.as = "text",
-                         auth = NULL) {
+                         auth = NULL,
+                         all.results = TRUE) {
 
   ## Input Validation
   assert_that(is.string(verb))
@@ -185,9 +189,9 @@ qapi_request <- function(verb,
   }
   
   ## If list is paginated, request more if chosen
-  if (!is.null(qapi_resp$result$nextPage)) {
+  if (!is.null(qapi_resp$result$nextPage) & all.results) {
     new_resp <- qapi_request(verb, qapi_resp$result$nextPage, data,
-                             auth = auth)
+                             auth = auth, all.results = all.results)
 
     qapi_resp$result$elements <- rbind(qapi_resp$result$elements,
                                        new_resp$result$elements)
@@ -204,9 +208,9 @@ qapi_request <- function(verb,
 #' @param request httr request object of the Qualtrics API request
 
 qapi_error <- function(request) {
-  req_hdrs <- headers(request)
+  req_hdrs <- httr::headers(request)
 
-  if (http_type(request) == "application/json") {
+  if (httr::http_type(request) == "application/json") {
     resp_raw <- httr::content(request, "text", encoding = "UTF-8")
     resp_json <- jsonlite::fromJSON(resp_raw)
     
@@ -218,7 +222,7 @@ qapi_error <- function(request) {
     }
   }
   
-  stop("HTTP Error: ", http_status(request)$message)
+  stop("HTTP Error: ", httr::http_status(request)$message)
 }
 
 #' qapi_response_export
@@ -295,5 +299,21 @@ qapi_list_surveys <- function() {
   list_req <- qapi_request("GET",
                            "surveys")
 
-  return(list_req)
+  return(list_req$result$elements)
+}
+
+#' qapi_get_survey
+#'
+#' QAPI call to get metadata about a particular survey1
+#'
+#' @param survey_id
+#'
+#' @return Named list of metadata
+#' @export
+
+qapi_get_survey <- function(survey_id) {
+  get_req <- qapi_request("GET",
+                          paste0("surveys/", survey_id))
+
+  return(get_req)
 }
