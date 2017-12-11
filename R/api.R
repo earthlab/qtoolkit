@@ -1,53 +1,122 @@
-#' connect_qualtrics
+#' qapi_base_url
+#'
+#' Return a Qualtrics API base URL based upon subdomain
+#'
+#' @importFrom assert_that assert_that
+#' 
+#' @param subdomain Qualtrics subdomain
+#'
+#' @return String of Qualtrics API base URL
+
+qapi_get_base_url <- function(subdomain) {
+  assert_that(is.string(subdomain))
+  base_url <- paste0("https://", subdomain, ".qualtrics.com/API/v3/")
+
+  return(base_url)
+}
+
+#' qapi_connect
 #'
 #' Open a connection to Qualtrics API with login info
 #'
-#' @param file Filename of file with connection information
+#' @importFrom assert_that assert_that
+#' 
 #' @param subdomain Qualtrics subdomain with which to get surveys
 #' @param key Qualtrics API key for API access
+#' @param file File from which to load Qualtrics API Auth info
 #' @export
 
-connect_qualtrics <- function(subdomain,
-                              file = "~/.qualtrics_api_key",
-                              key = FALSE) {
+qapi_connect <- function(subdomain,
+                         key,
+                         auth_file = ".qapi_auth.R") {
   
-  # Try to load key from file if not specified
-  if (key == FALSE) {
-    if (file.exists(file)) {
-      f <- readLines(file)
-      
-      if (length(f) && nchar(f[1])) {
-        key <- f[1]
-      } else {
-        stop("Couldn't load key from ", file)
-      }
+  ## If subdomain and key are provided, attempt to connect with that
+  if (!missing(subdomain) & !missing(key)) {
+    assert_that(is.string(subdomain))
+    assert_that(is.string(key))
+
+    if (qapi_test(subdomain, key)) {
+      qapi_auth <- list(subdomain = subdomain,
+                        api_key = key)
+
+      options(`QAPI_AUTH` = qapi_auth)
     } else {
-      stop("Couldn't find ", file)
+      cat("Connection successful!")
+    }
+  } else {
+    ## If the auth_file exists, source it to get user-defined auth
+    ## values stored in options(); if not, see if those values are set
+    ## anyways (perhaps w/ .Rprofile) and attempt connection with those
+    
+    if (file.exists(auth_file)) source(auth_file)
+
+    qapi_subd <- getOption("QAPI_SUBDOMAIN")
+    qapi_key <- getOption("QAPI_KEY")
+
+    if (!is.null(qapi_subd) & !is.null(qapi_key)) {
+      qapi_connect(qapi_subd, qapi_key)
+    } else {
+      stop("No Qualtrics API authentication info found")
     }
   }
-
-  # Check if subdomain was specified
-  if (missing(subdomain)) {
-    stop("Must specify subdomain")
-  }
-
-  # Set env variables so that qsurvey() can use credentials
-  Sys.setenv("QUALTRICS_SUBDOMAIN" = subdomain)
-  Sys.setenv("QUALTRICS_KEY" = key)
-
-  # Define error fn
-  error_fn <- function(e) {
-    if (grepl("HTTP 401", e)) {
-      stop("HTTP 401 Unauthorized. Check credentials and try again.",
-           call. = FALSE)
-    } else {
-      stop(e)
-    }
-  }
-
-  # Test surveys() call
-  test <- withCallingHandlers({ qsurvey::surveys() }, error = error_fn)
 }
+
+#' qapi_test
+#'
+#' Test Qualtrics API connection
+#' 
+#' @importFrom assert_that assert_that
+#' 
+#' @param subdomain Qualtrics subdomain to test
+#' @param key Qualtrics API key to test
+#' 
+#' @return True if successful, or will error if not
+#' @export
+
+qapi_test <- function(subdomain,
+                      key) {
+
+  assert_that(is.string(subdomain))
+  assert_that(is.string(key))
+
+  test_auth <- list(subdomain = subdomain,
+                    api_key = key)
+
+  test_req <- qapi_request("GET", "surveys", auth = test_auth,
+                           all.results = FALSE)
+
+  if (!is.null(test_req) & !identical(test_req, FALSE)) {
+    cat("Connection successful!\n")
+    return(TRUE)
+  }
+}
+
+#' qapi_get_auth
+#'
+#' Get the stored authentication parameters for Qualtrics API
+#'
+#' @return Named list of authentication parameters
+#' @export
+
+qapi_get_auth <- function() {
+  
+  auth_keys <- c("api_key", "subdomain")
+  qapi_auth <- getOption("QAPI_AUTH")
+
+  if (is.null(qapi_auth)) {
+    stop("Qualtrics API authentication not stored in options()")
+  }
+
+  ## Test if all auth keys necessary exist
+  for (key in auth_keys) {
+    if (is.null(qapi_auth[[key]])) {
+      stop("Qualtrics API authentication params don't include ", key)
+    }
+  }
+  
+  return(qapi_auth)
+}
+
 
 #' qapi_request
 #'
@@ -58,7 +127,7 @@ connect_qualtrics <- function(subdomain,
 #' @param verb Request type (GET, POST, ...)
 #' @param method API call method (surveys, reponseexports, ...) or full API URL
 #' @param data Named list with request payload data
-#' @param all.results T or F, to return all results when paginated or just one
+#' @param all.results T or F, to return all results when paginated or just one page
 #' 
 #' @return Named list of JSON decoded response content
 #' @export
@@ -66,29 +135,25 @@ connect_qualtrics <- function(subdomain,
 qapi_request <- function(verb,
                          method,
                          data = list(),
-                         all.results = FALSE) {
+                         all.results = TRUE,
+                         auth = NULL) {
 
   ## Input Validation
   assert_that(is.string(verb))
   assert_that(is.string(method))
   assert_that(is.list(data))
   
-  auth <- getOption("QAPI_AUTH")
   verb <- toupper(verb)
 
   if (is.null(auth)) {
-    stop("Must first establish API connection with `qualtrics_connect()`")
+    auth <- qapi_get_auth()
   }
 
-  if (missing(method)) {
-    stop("Method must be specified for Qualtrics API call")
-  }
-
-  # If method string has full address use that, otherwise build API URL
+  ## If method string has full address use that, otherwise build API URL
   if (grepl("^https*://", method)) {
     qapi_url <- method
   } else {
-    qapi_url <- paste0(auth$base_url, method)
+    qapi_url <- paste0(qapi_get_base_url(auth$subdomain), method)
   }
 
   ## Set up & send API Request, parse response
@@ -103,12 +168,18 @@ qapi_request <- function(verb,
   qapi_raw <- httr::content(qapi_req, "text", encoding = "UTF-8")
   qapi_resp <- jsonlite::fromJSON(qapi_raw)
 
-  ## Check for errors
+  ## Check for errors :: If we get back some JSON with error info,
+  ## display that; if not, use the error info given to us by httr
   if (httr::http_error(qapi_req)) {
-    err_status <- qapi_resp$meta$httpStatus
-    err_msg <- qapi_resp$meta$error$errorMessage
+    
+    if (!is.null(qapi_resp$meta$httpStatus)) {
+      err_status <- qapi_resp$meta$httpStatus
+      err_msg <- qapi_resp$meta$error$errorMessage
 
-    stop("HTTP Error (", err_status, "): ", err_msg)
+      stop("HTTP Error (", err_status, "): ", err_msg)
+    } else {
+      ## httr error info
+    }
   }
 
   ## If list is paginated, request more if chosen
