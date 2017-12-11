@@ -2,7 +2,8 @@
 #'
 #' Return a Qualtrics API base URL based upon subdomain
 #'
-#' @importFrom assert_that assert_that
+#' @importFrom assertthat assert_that
+#' @importFrom assertthat is.string
 #' 
 #' @param subdomain Qualtrics subdomain
 #'
@@ -19,7 +20,8 @@ qapi_get_base_url <- function(subdomain) {
 #'
 #' Open a connection to Qualtrics API with login info
 #'
-#' @importFrom assert_that assert_that
+#' @importFrom assertthat assert_that
+#' @importFrom assertthat is.string
 #' 
 #' @param subdomain Qualtrics subdomain with which to get surveys
 #' @param key Qualtrics API key for API access
@@ -39,7 +41,7 @@ qapi_connect <- function(subdomain,
       qapi_auth <- list(subdomain = subdomain,
                         api_key = key)
 
-      options(`QAPI_AUTH` = qapi_auth)
+      options(QAPI_AUTH = qapi_auth)
     } else {
       cat("Connection successful!")
     }
@@ -47,7 +49,6 @@ qapi_connect <- function(subdomain,
     ## If the auth_file exists, source it to get user-defined auth
     ## values stored in options(); if not, see if those values are set
     ## anyways (perhaps w/ .Rprofile) and attempt connection with those
-    
     if (file.exists(auth_file)) source(auth_file)
 
     qapi_subd <- getOption("QAPI_SUBDOMAIN")
@@ -65,7 +66,8 @@ qapi_connect <- function(subdomain,
 #'
 #' Test Qualtrics API connection
 #' 
-#' @importFrom assert_that assert_that
+#' @importFrom assertthat assert_that
+#' @importFrom assertthat is.string
 #' 
 #' @param subdomain Qualtrics subdomain to test
 #' @param key Qualtrics API key to test
@@ -81,12 +83,12 @@ qapi_test <- function(subdomain,
 
   test_auth <- list(subdomain = subdomain,
                     api_key = key)
-
-  test_req <- qapi_request("GET", "surveys", auth = test_auth,
-                           all.results = FALSE)
-
+  
+  test_req <- qapi_request("GET", "surveys", auth = test_auth)
+  
   if (!is.null(test_req) & !identical(test_req, FALSE)) {
-    cat("Connection successful!\n")
+    cat("Connection successful! (subdomain='", subdomain, "')\n",
+        sep = "")
     return(TRUE)
   }
 }
@@ -122,7 +124,8 @@ qapi_get_auth <- function() {
 #'
 #' Send request to Qualtrics API
 #'
-#' @importFrom assert_that assert_that
+#' @importFrom assertthat assert_that
+#' @importFrom assertthat is.string
 #'
 #' @param verb Request type (GET, POST, ...)
 #' @param method API call method (surveys, reponseexports, ...) or full API URL
@@ -172,7 +175,8 @@ qapi_request <- function(verb,
   }
 
   ## Parse (or not) response content
-  qapi_resp <- httr::content(qapi_req, content.as, encoding = "UTF-8")
+  qapi_resp <- httr::content(qapi_req, as = content.as,
+                             encoding = "UTF-8")
 
   if (content.as == "raw") {
     return(qapi_resp)
@@ -182,7 +186,8 @@ qapi_request <- function(verb,
   
   ## If list is paginated, request more if chosen
   if (!is.null(qapi_resp$result$nextPage)) {
-    new_resp <- qapi_request(verb, qapi_resp$result$nextPage, data, all.results)
+    new_resp <- qapi_request(verb, qapi_resp$result$nextPage, data,
+                             auth = auth)
 
     qapi_resp$result$elements <- rbind(qapi_resp$result$elements,
                                        new_resp$result$elements)
@@ -220,14 +225,15 @@ qapi_error <- function(request) {
 #'
 #' Get DF of survey responses from Qualtrics API
 #'
-#' @importFrom assert_that assert_that
+#' @importFrom assertthat assert_that
+#' @importFrom assertthat is.string
 #' 
 #' @param survey_id ID of survey to get responses
 #'
 #' @return DF of survey responses
 #' @export
 
-qapi_response_export<- function(survey_id) {
+qapi_response_export <- function(survey_id) {
 
   ## Input Validation
   assert_that(is.string(survey_id))
@@ -259,6 +265,7 @@ qapi_response_export<- function(survey_id) {
                   err_info$reason, " ", err_info$nextStep)
            })
   }
+  
   ## Once export is complete, download export zip file, read its
   ## contents and then load the csv data from inside
   dl_resp <- qapi_request("GET",
@@ -271,8 +278,22 @@ qapi_response_export<- function(survey_id) {
 
   ## Get list of inside zip file, get contents of csv and return
   csv_file <- unzip(zip_file, list = TRUE)[1, "Name"]
-  csv_data <- read.table(unz(zip_file, csv_file), header=T,
+  csv_df <- read.table(unz(zip_file, csv_file), header=T,
                          quote="\"", sep=",")
 
-  return(csv_data)
+  return(csv_df)
+}
+
+#' qapi_list_surveys
+#'
+#' QAPI call to list all surveys that a user owns
+#'
+#' @return DF of surveys
+#' @export
+
+qapi_list_surveys <- function() {
+  list_req <- qapi_request("GET",
+                           "surveys")
+
+  return(list_req)
 }

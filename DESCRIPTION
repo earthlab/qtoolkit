@@ -7,9 +7,9 @@ Description: Toolkit for processing and visualizing Qualtrics Surveys
 Depends: R (>= 3.2.3)
 Imports:
     dplyr,
-    qsurvey,
     tidyr,
-    magrittr
+    magrittr,
+    assertthat
 License: MIT
 Encoding: UTF-8
 LazyData: true
