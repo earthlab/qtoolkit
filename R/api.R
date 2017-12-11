@@ -261,7 +261,7 @@ qapi_response_export <- function(survey_id) {
 
     switch(check_status,
            "complete" = {break},
-           "in progress" = {Sys.sleep(0.5)},
+           "in progress" = {Sys.sleep(0.2)},
            {
              err_info <- check_resp$result$info
              
@@ -282,7 +282,7 @@ qapi_response_export <- function(survey_id) {
 
   ## Get list of inside zip file, get contents of csv and return
   csv_file <- unzip(zip_file, list = TRUE)[1, "Name"]
-  csv_df <- read.table(unz(zip_file, csv_file), header=T,
+  csv_df <- read.csv(unz(zip_file, csv_file), header=T,
                          quote="\"", sep=",")
 
   return(csv_df)
