@@ -127,7 +127,8 @@ qapi_get_auth <- function() {
 #' @param verb Request type (GET, POST, ...)
 #' @param method API call method (surveys, reponseexports, ...) or full API URL
 #' @param data Named list with request payload data
-#' @param all.results T or F, to return all results when paginated or just one page
+#' @param content.as "text" or "raw" depending on if JSON or raw data returned
+#' @param auth Qualtrics API authentication to use, 
 #' 
 #' @return Named list of JSON decoded response content
 #' @export
@@ -135,7 +136,7 @@ qapi_get_auth <- function() {
 qapi_request <- function(verb,
                          method,
                          data = list(),
-                         all.results = TRUE,
+                         content.as = "text",
                          auth = NULL) {
 
   ## Input Validation
@@ -156,32 +157,29 @@ qapi_request <- function(verb,
     qapi_url <- paste0(qapi_get_base_url(auth$subdomain), method)
   }
 
-  ## Set up & send API Request, parse response
-  qapi_dat <- jsonlite::toJSON(data)
+  ## Set up & send API Request
+  qapi_dat <- jsonlite::toJSON(data, auto_unbox = TRUE)
   qapi_hdr <- httr::add_headers(`X-API-TOKEN` = auth$api_key,
                                 `User-Agent` = "qtoolkit",
                                 `Content-type` = "application/json")
 
   httr_req <- getFromNamespace(verb, "httr")
-  qapi_req <- httr_req(qapi_url, qapi_hdr, query = data)
+  qapi_req <- httr_req(qapi_url, qapi_hdr, body = qapi_dat)
 
-  qapi_raw <- httr::content(qapi_req, "text", encoding = "UTF-8")
-  qapi_resp <- jsonlite::fromJSON(qapi_raw)
-
-  ## Check for errors :: If we get back some JSON with error info,
-  ## display that; if not, use the error info given to us by httr
+  ## Check for response errors.
   if (httr::http_error(qapi_req)) {
-    
-    if (!is.null(qapi_resp$meta$httpStatus)) {
-      err_status <- qapi_resp$meta$httpStatus
-      err_msg <- qapi_resp$meta$error$errorMessage
-
-      stop("HTTP Error (", err_status, "): ", err_msg)
-    } else {
-      ## httr error info
-    }
+    qapi_error(qapi_req)
   }
 
+  ## Parse (or not) response content
+  qapi_resp <- httr::content(qapi_req, content.as, encoding = "UTF-8")
+
+  if (content.as == "raw") {
+    return(qapi_resp)
+  } else {
+    qapi_resp <- jsonlite::fromJSON(qapi_resp)
+  }
+  
   ## If list is paginated, request more if chosen
   if (!is.null(qapi_resp$result$nextPage)) {
     new_resp <- qapi_request(verb, qapi_resp$result$nextPage, data, all.results)
@@ -192,4 +190,89 @@ qapi_request <- function(verb,
   }
 
   return(qapi_resp)
+}
+
+#' qapi_error
+#'
+#' Handle errors caused by Qualtrics API request
+#'
+#' @param request httr request object of the Qualtrics API request
+
+qapi_error <- function(request) {
+  req_hdrs <- headers(request)
+
+  if (http_type(request) == "application/json") {
+    resp_raw <- httr::content(request, "text", encoding = "UTF-8")
+    resp_json <- jsonlite::fromJSON(resp_raw)
+    
+    if (!is.null(resp_json$meta$httpStatus)) {
+      err_status <- resp_json$meta$httpStatus
+      err_msg <- resp_json$meta$error$errorMessage
+
+      stop("QAPI Error (", err_status, "): ", err_msg)
+    }
+  }
+  
+  stop("HTTP Error: ", http_status(request)$message)
+}
+
+#' qapi_response_export
+#'
+#' Get DF of survey responses from Qualtrics API
+#'
+#' @importFrom assert_that assert_that
+#' 
+#' @param survey_id ID of survey to get responses
+#'
+#' @return DF of survey responses
+#' @export
+
+qapi_response_export<- function(survey_id) {
+
+  ## Input Validation
+  assert_that(is.string(survey_id))
+
+  ## Send request to start survey response export
+  create_data <- list(surveyId = survey_id,
+                      format = "csv")
+  
+  create_resp <- qapi_request("POST",
+                              "responseexports",
+                              create_data)
+
+  create_id <- create_resp$result$id
+
+  ## Keep pinging Qualtrics to see if export is complete
+  while (TRUE) {
+    check_resp <- qapi_request("GET",
+                               paste0("responseexports/", create_id))
+
+    check_status <- check_resp$result$status
+
+    switch(check_status,
+           "complete" = {break},
+           "in progress" = {Sys.sleep(0.5)},
+           {
+             err_info <- check_resp$result$info
+             
+             stop("Response Export Error: ",
+                  err_info$reason, " ", err_info$nextStep)
+           })
+  }
+  ## Once export is complete, download export zip file, read its
+  ## contents and then load the csv data from inside
+  dl_resp <- qapi_request("GET",
+                          check_resp$result$file,
+                          content.as = "raw")
+
+  ## Download and write temp file
+  zip_file <- tempfile()
+  writeBin(dl_resp, zip_file)
+
+  ## Get list of inside zip file, get contents of csv and return
+  csv_file <- unzip(zip_file, list = TRUE)[1, "Name"]
+  csv_data <- read.table(unz(zip_file, csv_file), header=T,
+                         quote="\"", sep=",")
+
+  return(csv_data)
 }

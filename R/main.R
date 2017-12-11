@@ -1,5 +1,3 @@
-
-
 #' list_surveys
 #'
 #' Select surveys available, optionally matching survey name or ID.
@@ -11,7 +9,7 @@
 #' @export
 
 list_surveys <- function(filter = "",
-                        match.exact = FALSE) {
+                         match.exact = FALSE) {
   
   # Detect filter type by filter string
   # If filter is an ID perform an exact match
@@ -19,7 +17,8 @@ list_surveys <- function(filter = "",
   match.exact <- if (filter.prop == "id") TRUE else match.exact
 
   # Get all surveys
-  all_surveys <- qsurvey::surveys()
+  qapi_req <- qapi_request("GET", "surveys")
+  all_surveys <- qapi_req$result$elements
 
   # Build regex to match exact or not
   if (match.exact == TRUE) {
@@ -55,8 +54,8 @@ list_surveys <- function(filter = "",
 #' @export
 
 get_survey <- function(filter = "",
-                        match.exact = TRUE,
-                        verbose = TRUE) {
+                       match.exact = TRUE,
+                       verbose = TRUE) {
 
   # Handle different possible passed filters and validate
   if ( is.character(filter) ) {
@@ -105,7 +104,6 @@ get_survey <- function(filter = "",
   } else {
     return(designs_vector)
   }
-  
 }
 
 #' get_responses
