@@ -194,7 +194,7 @@ qapi_request <- function(verb,
   return(qapi_resp)
 }
 
-#' get_surveys
+#' list_surveys
 #'
 #' Select surveys available, optionally matching survey name or ID.
 #'
@@ -204,7 +204,7 @@ qapi_request <- function(verb,
 #' @return DF of matched surveys
 #' @export
 
-get_surveys <- function(filter = "",
+list_surveys <- function(filter = "",
                         match.exact = FALSE) {
   
   # Detect filter type by filter string
@@ -236,9 +236,9 @@ get_surveys <- function(filter = "",
   return(survey_matches)
 }
 
-#' load_survey
+#' get_survey
 #'
-#' Load all metadata of specific survey(s) from API and return
+#' Get all metadata of specific survey(s) from API and return
 #' survey design object
 #'
 #' @param filter DF of surveys with survey ids and names, or survey name
@@ -248,14 +248,14 @@ get_surveys <- function(filter = "",
 #' @return If one match, return design object of survey. If many, return list of design objects
 #' @export
 
-load_survey <- function(filter = "",
+get_survey <- function(filter = "",
                         match.exact = TRUE,
                         verbose = TRUE) {
 
   # Handle different possible passed filters and validate
   if ( is.character(filter) ) {
-    surveys <- get_surveys(filter,
-                           match.exact = match.exact)
+    surveys <- list_surveys(filter,
+                            match.exact = match.exact)
   }
   else if ( is.data.frame(filter) ) {
     surveys <- filter
