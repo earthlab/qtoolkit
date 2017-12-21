@@ -7,10 +7,11 @@
 check_duplicate_question(survey, fatal = FALSE)
 }
 \arguments{
-\item{survey}{Survey to check}
+\item{survey}{Survey object to check}
 
 \item{fatal}{Stop execution if duplicate question, or no}
 }
 \description{
-Check whether a survey has a duplicate question number.
+Check whether a survey has a duplicate question number and report
+to user if it does
 }

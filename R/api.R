@@ -49,44 +49,43 @@ connect_qualtrics <- function(subdomain,
   test <- withCallingHandlers({ qsurvey::surveys() }, error = error_fn)
 }
 
-#' get_survey
+#' get_surveys
 #'
-#' Select surveys available, optionally filtering by name
+#' Select surveys available, optionally matching survey name or ID.
 #'
-#' @param name Complete or partial name of survey
-#' @param id Survey ID if known
-#' @param match.exact Match exact name of survey or use wildcards
+#' @param filter Complete or partial name of survey
+#' @param match.exact Match exact survey name or partial
 #'
 #' @return DF of matched surveys
 #' @export
 
-get_survey <- function(name = "",
-                       id = "",
-                       match.exact = TRUE) {
-
-  # Whether to filter by ID or name depending what's passed
-  filters <- list(name = name,
-                  id = id)
-
-  filter <- if (id != "") "id" else "name"
+get_surveys <- function(filter = "",
+                        match.exact = FALSE) {
   
+  # Detect filter type by filter string
+  # If filter is an ID perform an exact match
+  filter.prop <- if (grepl("^SV_.+", filter)) "id" else "name"
+  match.exact <- if (filter.prop == "id") TRUE else match.exact
+
   # Get all surveys
   all_surveys <- qsurvey::surveys()
 
   # Build regex to match exact or not
   if (match.exact == TRUE) {
-    regex <- paste("^", filters[[filter]], "$", sep = "")
+    regex <- paste0("^", filter, "$")
   } else {
-    regex <- paste(".*", filters[[filter]], ".*", sep = "")
+    regex <- paste0(".*", filter, ".*")
   }
     
   # Get matches from all surveys, and sort by name
-  survey_matches <- all_surveys[grep(regex, all_surveys[[filter]]),]
+  survey_matches <- all_surveys[grep(regex, all_surveys[[filter.prop]]),]
   survey_matches <- survey_matches[order(survey_matches$name),]
 
   # Check if any surveys were returned
   if (dim(survey_matches)[1] == 0) {
-    stop("No surveys matched with ", filter, " '", filters[[filter]], "'")
+    msg.txt <- if (match.exact) "exact " else "partial "
+    stop("No surveys matched with ", msg.txt, filter.prop,
+         " '", filter, "'")
   }
   
   return(survey_matches)
@@ -94,32 +93,36 @@ get_survey <- function(name = "",
 
 #' load_survey
 #'
-#' Select surveys with a fragment of the survey's name
+#' Load all metadata of specific survey(s) from API and return
+#' survey design object
 #'
-#' @param surveys DF of surveys with survey ids and names, or survey name
-#' @param verbose Let user know full name & surveyID of selected survey
-#' @param match.exact Match exact survey name or use wildcards
+#' @param filter DF of surveys with survey ids and names, or survey name
+#' @param match.exact Match exact survey name or partial
+#' @param verbose User will see which surveys are being loaded
 #'
 #' @return If one match, return design object of survey. If many, return list of design objects
 #' @export
 
-load_survey <- function(surveys = "",
-                        verbose = TRUE,
-                        match.exact = TRUE) {
+load_survey <- function(filter = "",
+                        match.exact = TRUE,
+                        verbose = TRUE) {
 
-  # Check if user is specifying survey name or DF
-  if (is.character(surveys)) {
-    surveys <- get_survey(surveys,
-                          match.exact = match.exact)
-  } else if (!is.data.frame(surveys)) {
-    stop("`surveys` must be a data frame or name")
+  # Handle different possible passed filters and validate
+  if ( is.character(filter) ) {
+    surveys <- get_surveys(filter,
+                           match.exact = match.exact)
   }
+  else if ( is.data.frame(filter) ) {
+    surveys <- filter
+    survey_cols <- names(surveys)
 
-  # Check inputs
-  survey_cols <- names(surveys)
+    # Error if passed DF has insufficient info
+    if (!("id" %in% survey_cols) || !("name" %in% survey_cols)) {
+      stop("`surveys` must contain 'id' and 'name' columns")
+    }
 
-  if (!("id" %in% survey_cols) || !("name" %in% survey_cols)) {
-    stop("`surveys` must contain 'id' and 'name' columns")
+  } else {
+    stop("filter is not a valid dataframe or string")
   }
   
   # How many surveys we are loading
@@ -133,7 +136,7 @@ load_survey <- function(surveys = "",
     
     # Let user know of match if verbose
     if (verbose) {
-      output <- paste("Loading: ", surveys[i,]$name, "\n", sep = "")
+      output <- paste0("Loading: ", surveys[i,]$name, "\n")
       cat(output)
     }
 

@@ -7,8 +7,8 @@
 #' @importFrom dplyr matches
 #' @export
 #' 
-#' @param survey Survey Object (or ID)
-#' @param question Question Number or Vector of Question Numbers
+#' @param survey Survey Object
+#' @param question_num Question Number or Vector of Question Numbers
 #' @param metadata Include metadata about each participant in DF
 #' @param melt Melt data from a DF into key=>value DF
 #' @param rm.other Remove "Other" responses from MC questions
@@ -17,29 +17,19 @@
 #' @return DF of survey question answers
 
 get_responses <- function(survey,
-                          question_num = "Q.*",
-                          metadata = FALSE,
-                          melt = TRUE,
+                          question_num = ".*",
+                          metadata = TRUE,
+                          melt = FALSE,
                           rm.other = TRUE,
                           rm.blank = TRUE) {
 
-  ## Check if survey object or survey ID is passed
-  if (!is.character(survey)) {
-    survey <- survey$id
-  }
-  
   ## Get survey responses from Qualtrics API
-  question_num <- paste(question_num, collapse="|")
+  question_num <- paste(question_num, collapse = "|")
+  num_filter <- paste0("^(", question_num, ")(\\_|$)")
   
-  if ( is.vector(question_num) ) {
-    id_filter <- paste("^(", question_num, ")(\\_|$)", sep = "")
-  } else {
-    id_filter <- paste("^", question_num, "(\\_|$)", sep = "")
-  }
-  
-  resp <- qsurvey::responses(survey)  
+  resp <- qsurvey::responses(survey)
   q_resp <- select(resp, starts_with("ResponseID"),
-                   matches(id_filter))
+                   matches(num_filter))
 
   ## Check if any responses returned and if
   ## any of the columns match the relevant question
@@ -54,7 +44,7 @@ get_responses <- function(survey,
     q_metadata <- select(resp, -starts_with("Q"))
     q_resp<- merge(q_metadata, q_resp)
   } else {
-    q_resp<- select(q_resp, matches(id_filter))
+    q_resp<- select(q_resp, matches(num_filter))
   }
 
   ## Melt the data if told so
@@ -66,7 +56,7 @@ get_responses <- function(survey,
                        !grepl("_TEXT$", key))
     }
 
-    if (rm.blank == TRUE) {
+    if (rm.blank == FALSE) {
       q_resp <- filter(q_resp, !(value == ""))
     }
   }    
@@ -79,6 +69,7 @@ get_responses <- function(survey,
 #' Get info about question(s) asked in a particular survey
 #'
 #' @importFrom dplyr filter
+#' @importFrom tidyr gather
 #' @export
 #' 
 #' @param survey Survey Design Object
@@ -88,15 +79,15 @@ get_responses <- function(survey,
 #' @return DF of matching questions
 
 get_questions <- function(survey,
-                          question_num = "Q.*",
+                          question_num = ".*",
                           question_id = "QID.*") {
 
   ## Get survey questions from qsurvey API
   qs <- qsurvey::questions(survey)
 
   ## Filter questions by names passed
-  num_filter <- paste("^", question_num, "(\\_|$)", sep="")
-  id_filter <- paste("^", question_id, "(\\_|$)", sep="")
+  num_filter <- paste0("^", question_num, "(\\_|$)")
+  id_filter <- paste0("^", question_id, "(\\_|$)")
   
   q_resp <- filter(qs, grepl(num_filter, export_name),
                    grepl(id_filter, question_id))
@@ -113,7 +104,7 @@ get_questions <- function(survey,
   q_resp$question_text <- strip_html(q_resp$question_raw)
 
   ## Add question number column (turns Q9_1 into Q9)
-  q_resp$question_num <- sub("^(Q[0-9]+).*", "\\1",
+  q_resp$question_num <- sub("^(.*?)(\\_|#|$).*", "\\1",
                              q_resp$export_name)
 
   return(q_resp)
@@ -136,7 +127,7 @@ get_questions <- function(survey,
 #' @export
 
 get_choices <- function(survey,
-                        question_num = "Q.*",
+                        question_num = ".*",
                         question_id = "QID.*") {
 
   ## Get choices from qsurvey API
