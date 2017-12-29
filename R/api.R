@@ -165,7 +165,7 @@ qapi_request <- function(verb,
   }
 
   ## Set up & send API Request
-  qapi_dat <- jsonlite::toJSON(data, auto_unbox = TRUE)
+  qapi_dat <- RJSONIO::toJSON(data, asIs = FALSE)
   qapi_hdr <- httr::add_headers(`X-API-TOKEN` = auth$api_key,
                                 `User-Agent` = "qtoolkit",
                                 `Content-type` = "application/json")
@@ -185,7 +185,8 @@ qapi_request <- function(verb,
   if (content.as == "raw") {
     return(qapi_resp)
   } else {
-    qapi_resp <- jsonlite::fromJSON(qapi_resp)
+    qapi_resp <- RJSONIO::fromJSON(qapi_resp, nullValue = NA,
+                                  simplifyWithNames = FALSE)
   }
   
   ## If list is paginated, request more if chosen
@@ -212,7 +213,8 @@ qapi_error <- function(request) {
 
   if (httr::http_type(request) == "application/json") {
     resp_raw <- httr::content(request, "text", encoding = "UTF-8")
-    resp_json <- jsonlite::fromJSON(resp_raw)
+    resp_json <- RJSONIO::fromJSON(resp_raw, nullValue = NA,
+                                   simplifyWithNames = FALSE)
     
     if (!is.null(resp_json$meta$httpStatus)) {
       err_status <- resp_json$meta$httpStatus
@@ -280,11 +282,22 @@ qapi_response_export <- function(survey_id) {
   zip_file <- tempfile()
   writeBin(dl_resp, zip_file)
 
-  ## Get list of inside zip file, get contents of csv and return
+  ## Get list of inside zip file, and select the csv file's name
   csv_file <- unzip(zip_file, list = TRUE)[1, "Name"]
-  csv_df <- read.csv(unz(zip_file, csv_file), header=T,
-                         quote="\"", sep=",")
 
+  ## Get col names from csv file
+  csv_colnames <- read.csv(unz(zip_file, csv_file), header = TRUE,
+                     quote="\"", sep=",")
+  csv_colnames <- names(csv_colnames)
+
+  ## Get csv data and append col names. This is so the DF will have all
+  ## cols be the correct data type as in the csv the first two rows
+  ## of each column are a string which will throw off the parser
+  csv_df <- read.csv(unz(zip_file, csv_file), header = TRUE,
+                     quote="\"", sep=",", skip = 3)
+  names(csv_df) <- csv_colnames
+
+  ## Skip first two lines of DF; we don't need 'em!
   return(csv_df)
 }
 
@@ -315,5 +328,5 @@ qapi_get_survey <- function(survey_id) {
   get_req <- qapi_request("GET",
                           paste0("surveys/", survey_id))
 
-  return(get_req)
+  return(get_req$result)
 }

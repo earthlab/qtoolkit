@@ -40,6 +40,18 @@ list_surveys <- function(filter = "",
   return(survey_matches)
 }
 
+#' survey
+#'
+#' qToolkit survey object
+#'
+#' @param survey_id
+#'
+#' @return qToolkit survey object for survey_id
+
+survey <- function(survey_id) {
+
+}
+
 #' get_survey
 #'
 #' Get all metadata of specific survey(s) from API and return
@@ -134,7 +146,6 @@ get_responses <- function(survey,
   question_num <- paste(question_num, collapse = "|")
   num_filter <- paste0("^(", question_num, ")(\\_|$)")
   
-  resp <- qapi_response_export(
   q_resp <- select(resp, starts_with("ResponseID"),
                    matches(num_filter))
 
