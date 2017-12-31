@@ -18,6 +18,9 @@ survey <- function(survey_id,
 
   ## Build the $questions dataframe and the 
   ## And a list of lists for the $choices dataframe
+
+  qs_order <<- 1
+  
   parse_qs <- function(qid) {
     q <- s_meta$questions[[qid]]
     
@@ -33,8 +36,8 @@ survey <- function(survey_id,
     
     qs_df <<- rbind(qs_df, s_qs)
 
-    ## If the question we're parsing has choices or subquestions, add
-    ## those to choices_df or subqs_df, respectively, incl the order    
+    ## If the question we're parsing has choices or subquestions,
+    ## parse them, including the order of the parsed choices/subqs
     if (!is.null(q$choices)) {    
       cs_order <<- 1
       cs_parse <- sapply(q$choices, parse_cs, qid = qid)

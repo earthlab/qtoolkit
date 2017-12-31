@@ -294,7 +294,7 @@ qapi_response_export <- function(survey_id) {
   ## cols be the correct data type as in the csv the first two rows
   ## of each column are a string which will throw off the parser
   csv_df <- read.csv(unz(zip_file, csv_file), header = TRUE,
-                     quote="\"", sep=",", skip = 3)
+                     quote="\"", sep=",", skip = 2)
   names(csv_df) <- csv_colnames
 
   ## Skip first two lines of DF; we don't need 'em!
