@@ -40,18 +40,6 @@ list_surveys <- function(filter = "",
   return(survey_matches)
 }
 
-#' survey
-#'
-#' qToolkit survey object
-#'
-#' @param survey_id
-#'
-#' @return qToolkit survey object for survey_id
-
-survey <- function(survey_id) {
-
-}
-
 #' get_survey
 #'
 #' Get all metadata of specific survey(s) from API and return
