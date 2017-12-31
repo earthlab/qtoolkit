@@ -2,14 +2,27 @@
 #'
 #' qToolkit survey object
 #'
-#' @param survey_id
+#' @param filter Survey ID or name to search for
+#' @param strip.html
 #'
 #' @return qToolkit survey object for survey_id
 #' @export
 
-survey <- function(survey_id,
+survey <- function(filter,
                    strip.html = TRUE) {
 
+  ## Input validation
+  assertthat(is.string(filter))
+
+  ## Get a survey by its ID or name, depending on filter passed
+  if (grepl("^SV_.+", filter)) {
+    survey_id <- filter
+  } else {
+    survey_id <- get_survey_id_by_name(filter,
+                                       match.exact = TRUE)
+  }
+    
+  ## Get survey data from Qualtrics API
   s_meta <- qapi_get_survey(survey_id)
   s_resp <- qapi_response_export(survey_id)
 
@@ -100,4 +113,35 @@ survey <- function(survey_id,
 
   class(survey) <- c("qsurvey", class(survey))
   return(survey)
+}
+
+#' surveys
+#'
+#' qToolkit survey collection object
+#'
+#' 
+
+surveys <- function(filter) {
+  ## User input validation
+  assertthat(!missing(filter))
+
+  ## Get list of survey IDs depending on what kind of filter is passed
+  if (!is.character(filter) | !grepl("^SV_.+", filter)) {
+    survey_ids <- find_surveys(filter, match.exact)
+  } else if (is.data.frame(filter)) {
+    survey_ids <- filter$id
+  } else {
+    survey_ids <- c(filter)
+  }
+
+  ## Loop thru returned survey IDs and create survey objects for each
+  num_surveys <- length(survey_ids)
+  surveys_vec <- vector(mode = "list",
+                        length = num_surveys)
+
+  for (i in 1:num_surveys) {
+    surveys_vec[[i]] <- survey()
+
+  }
+
 }

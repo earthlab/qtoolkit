@@ -1,43 +1,111 @@
+#' get_survey_id_by_name
+#'
+#' Get a survey ID by name
+#'
+#' @param name Survey name
+#' @param match.exact Search for exact name? (or partial)
+#' @param survey_df Dataframe of available surveys. If NULL, will load search surveys loaded from Qualtrics API
+
+get_survey_id_by_name <- function(name,
+                                  match.exact = TRUE,
+                                  surveys_df = NULL) {
+  ## Input validation
+  assertthat(!missing(name))
+
+  ## If the survey DF to search is passed, use that. Or, get survey list
+  if (surveys_df == NULL) {
+    surveys_df <- qapi_list_surveys()
+  }
+
+  ## Build regex to match name
+  if (match.exact == TRUE) {
+    regex <- paste0("^", filter, "$")
+  } else {
+    regex <- paste0(".*", filter, ".*")
+  }
+
+  ## Find matched surveys & error if none are matched
+  matches <- surveys_df[grep(regex, surveys_df[["name"]]),]
+  matches <- surveys_df[order(surveys_df$name),]
+
+  if (dim(matches)[1] == 0) {
+    msg.txt <- if (match.exact) "exact " else "partial "
+    stop("No surveys matched with ", msg.txt, "name '", filter, "'")
+  }
+
+  return(matches$id)
+}
+
 #' list_surveys
 #'
 #' Select surveys available, optionally matching survey name or ID.
 #'
 #' @param filter Complete or partial name of survey
 #' @param match.exact Match exact survey name or partial
+#' @param id.only Return DF of survey results or just vector of their IDs
 #'
 #' @return DF of matched surveys
 #' @export
 
 list_surveys <- function(filter = "",
-                         match.exact = FALSE) {
+                         match.exact = FALSE,
+                         id.only = FALSE) {
   
-  # Detect filter type by filter string
-  # If filter is an ID perform an exact match
+  ## Detect filter type by filter string
+  ## If filter is an ID perform an exact match
   filter.prop <- if (grepl("^SV_.+", filter)) "id" else "name"
   match.exact <- if (filter.prop == "id") TRUE else match.exact
 
-  # Get all surveys
+  ## Get all surveys
   all_surveys <- qapi_list_surveys()
 
-  # Build regex to match exact or not
+  ## Build regex to match exact or not
   if (match.exact == TRUE) {
     regex <- paste0("^", filter, "$")
   } else {
     regex <- paste0(".*", filter, ".*")
   }
     
-  # Get matches from all surveys, and sort by name
+  ## Get matches from all surveys, and sort by name
   survey_matches <- all_surveys[grep(regex, all_surveys[[filter.prop]]),]
   survey_matches <- survey_matches[order(survey_matches$name),]
 
-  # Check if any surveys were returned
+  ## Check if any surveys were returned
   if (dim(survey_matches)[1] == 0) {
     msg.txt <- if (match.exact) "exact " else "partial "
     stop("No surveys matched with ", msg.txt, filter.prop,
          " '", filter, "'")
   }
+
+  ## Return id only if specified; otherwise return the DF
+  if (id.only) {
+    return(survey_matches$id)
+  } else {
+    return(survey_matches)
+  }
+}
+
+find_surveys <- function(filter, match.exact) {
+
   
-  return(survey_matches)
+  ## If passed a string filter, use that
+  if (is.character(filter)) {
+    surveys_df <- list_surveys(filter,
+                               match.exact = match.exact)
+  }
+  ## If passed a dataframe, use that
+  else if (is.data.frame(filter)) {
+    if (!("id" %in% names(filter))) {
+      stop("`filter` dataframe must contain at least 'id' column")
+    }
+    
+    surveys_df <- filter
+  }
+  else {
+    stop("`filter` must be either a dataframe or character vector")
+  }
+
+  num_surveys <- dim(surveys_df)[1]
 }
 
 #' get_survey
@@ -52,7 +120,7 @@ list_surveys <- function(filter = "",
 #' @return If one match, return design object of survey. If many, return list of design objects
 #' @export
 
-get_survey <- function(filter = "",
+get_survey <- function(filter,
                        match.exact = TRUE,
                        verbose = TRUE) {
 

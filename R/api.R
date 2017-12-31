@@ -329,5 +329,7 @@ qapi_get_survey <- function(survey_id) {
   get_resp <- qapi_request("GET",
                           paste0("surveys/", survey_id))
 
+  ## TODO more user friendly error if survey ID is invalid
+  
   return(get_resp$result)
 }
