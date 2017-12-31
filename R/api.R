@@ -145,7 +145,6 @@ qapi_request <- function(verb,
                          content.as = "text",
                          auth = NULL,
                          all.results = TRUE) {
-
   ## Input Validation
   assert_that(is.string(verb))
   assert_that(is.string(method))
@@ -186,16 +185,16 @@ qapi_request <- function(verb,
     return(qapi_resp)
   } else {
     qapi_resp <- RJSONIO::fromJSON(qapi_resp, nullValue = NA,
-                                  simplifyWithNames = FALSE)
+                                   simplifyWithNames = FALSE)
   }
   
   ## If list is paginated, request more if chosen
-  if (!is.null(qapi_resp$result$nextPage) & all.results) {
+  if (!is.na(qapi_resp$result$nextPage) & all.results) {
     new_resp <- qapi_request(verb, qapi_resp$result$nextPage, data,
                              auth = auth, all.results = all.results)
 
-    qapi_resp$result$elements <- rbind(qapi_resp$result$elements,
-                                       new_resp$result$elements)
+    qapi_resp$result$elements <- c(qapi_resp$result$elements,
+                                   new_resp$result$elements)
     qapi_resp$result$nextPage <- NULL
   }
 
@@ -309,10 +308,12 @@ qapi_response_export <- function(survey_id) {
 #' @export
 
 qapi_list_surveys <- function() {
-  list_req <- qapi_request("GET",
-                           "surveys")
+  list_resp <- qapi_request("GET",
+                            "surveys")
 
-  return(list_req$result$elements)
+  list_df <- do.call(rbind.data.frame, list_resp$result$elements)
+
+  return(list_df)
 }
 
 #' qapi_get_survey
@@ -325,8 +326,8 @@ qapi_list_surveys <- function() {
 #' @export
 
 qapi_get_survey <- function(survey_id) {
-  get_req <- qapi_request("GET",
+  get_resp <- qapi_request("GET",
                           paste0("surveys/", survey_id))
 
-  return(get_req$result)
+  return(get_resp$result)
 }
