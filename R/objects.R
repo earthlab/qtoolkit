@@ -1,5 +1,25 @@
-survey2 <- function(survey_id) {
+#' survey
+#'
+#' Qualtrics survey object
+#'
+#' @param id_or_name Survey ID or name
+#' @param strip.html
+#'
+#' @return Qualtrics survey object
+#' @export
 
+survey <- function(id_or_name) {
+
+  assertthat(is.string(id_or_name))
+
+  ## Get a survey by its ID or name, depending on filter passed
+  if (grepl("^SV_.+", id_or_name)) {
+    survey_id <- id_or_name
+  } else {
+    survey_id <- get_survey_id_by_name(id_or_name,
+                                       match.exact = TRUE)
+  }
+  
   ## Get survey metadata and responses from Qualtrics API
   s_meta <- qapi_get_survey(survey_id)
   s_resp <- qapi_response_export(survey_id)
