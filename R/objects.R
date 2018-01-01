@@ -1,117 +1,91 @@
-#' survey
-#'
-#' qToolkit survey object
-#'
-#' @param filter Survey ID or name to search for
-#' @param strip.html
-#'
-#' @return qToolkit survey object for survey_id
-#' @export
+survey2 <- function(survey_id) {
 
-survey <- function(filter,
-                   strip.html = TRUE) {
-
-  ## Input validation
-  assertthat(is.string(filter))
-
-  ## Get a survey by its ID or name, depending on filter passed
-  if (grepl("^SV_.+", filter)) {
-    survey_id <- filter
-  } else {
-    survey_id <- get_survey_id_by_name(filter,
-                                       match.exact = TRUE)
-  }
-    
-  ## Get survey data from Qualtrics API
+  ## Get survey metadata and responses from Qualtrics API
   s_meta <- qapi_get_survey(survey_id)
   s_resp <- qapi_response_export(survey_id)
 
-  ## Strip HTML or keep text the same?
-  parse_fn <- if (strip.html) strip_html else c
+  ## Initialize lists to be populated with one-row dataframes of
+  ## question, choice, subquestion metadata
+  s_questions <- list()
+  s_choices <- list()
+  s_subquestions <- list()
 
-  ## Build the $questions dataframe and the 
-  ## And a list of lists for the $choices dataframe
+  ## Loop thru all returned questions
+  ## (must use seq_along to keep track of order)
+  qs <- s_meta$questions
+  qids <- names(qs)
 
-  qs_order <<- 1
-  
-  parse_qs <- function(qid) {
-    q <- s_meta$questions[[qid]]
-    
-    s_qs <- data.frame(
-        id = qid,
-        name = q$questionName,
-        text = parse_fn(q$questionText),
-        type = q$questionType$type,
-        type_selector = q$questionType$selector,
-        type_subselector = q$questionType$subSelector,
-        required = q$validation$doesForceResponse
-    )
-    
-    qs_df <<- rbind(qs_df, s_qs)
+  for(i in seq_along(qids)) {
+    qid <- qids[[i]]
+    q <- qs[[qid]]
 
-    ## If the question we're parsing has choices or subquestions,
-    ## parse them, including the order of the parsed choices/subqs
-    if (!is.null(q$choices)) {    
-      cs_order <<- 1
-      cs_parse <- sapply(q$choices, parse_cs, qid = qid)
+    ## Parse choices, if they exist
+    if (!is.null(q$choices)) {
+      cs <- q$choices
+      cids <- names(cs)
+
+      for (j in seq_along(cids)) {
+        cid <- cids[[j]]
+        c <- cs[[cid]]
+
+        ## Filter out empty lists because they break everything
+        c <- Filter(lengths, c)
+        c_df <- as.data.frame(c)
+
+        ## Add qid and order to choices dataframe
+        c_df$qid <- qid
+        c_df$order <- as.integer(j)
+
+        s_choices <- c(list(c_df), s_choices)
+      }   
     }
 
+    ## Parse subquestions, if they exist
     if (!is.null(q$subQuestions)) {
-      sqs_order <<- 1
-      sqs_parse <- sapply(q$subQuestions, parse_sqs, qid = qid)
+      sqs <- q$subQuestions
+      sqids <- names(sqs)
+
+      for (k in seq_along(sqids)) {
+        sqid <- sqids[[k]]
+        sq <- sqs[[sqid]]
+
+        ## Filter out empty lists because they break everything
+        sq <- Filter(lengths, sq)
+        sq_df <- as.data.frame(sq)
+
+        ## Add qid and order to subquestions dataframe
+        sq_df$qid <- qid
+        sq_df$order <- as.integer(k)
+
+        s_subquestions <- c(list(sq_df), s_subquestions)
+      }
     }
- 
+
+    ## Remove choices & subquestions data so we can parse rest of
+    ## questions metadata
+    q$choices <- NULL
+    q$subQuestions <- NULL
+
+    ## Flatten nested list, turn into dataframe and append to list of
+    ## dataframe of questions
+    q_unlist <- unlist(q, recursive = FALSE)
+    q_df <- as.data.frame(q_unlist)
+
+    q$qid <- qid
+    q$order <- as.integer(i)
+    
+    s_questions <- c(list(q_df), s_questions)
   }
 
-  ## Parse choices function
-  parse_cs <- function(c, qid) {
-    c_row <- data.frame(
-        qid = qid,
-        order = cs_order,
-        text = c$choiceText,
-        desc = c$description,
-        image_desc = c$imageDescription,
-        recode = as.integer(c$recode)
-    )
-
-    choices_df <<- rbind(choices_df, c_row)
-    cs_order <<- cs_order + 1
-  }
-
-  ## Parse subquestions function
-  parse_sqs <- function(sq, qid) {    
-    sq_row <- data.frame(
-        qid = qid,
-        order = sqs_order,
-        text = sq$choiceText,
-        desc = sq$description,
-        image_desc = sq$imageDescription,
-        recode = as.integer(sq$recode),
-        variable_name = sq$variableName
-    )
-
-    subqs_df <<- rbind(subqs_df, sq_row)
-    sqs_order <<- sqs_order + 1
-  }
-
-  ## Empty DF for choices & subquestions to be populated
-  qs_df <- data.frame()
-  choices_df <- data.frame()
-  subqs_df <- data.frame()
-
-  ## Run the recursive function parsing all the JSON data in to a DF
-  s_qids <- names(s_meta$questions)
-  qs_parse <- sapply(s_qids, parse_qs)
-
-  ## Define survey class
   survey <- list(
-      questions = qs_df,
-      choices = choices_df,
-      subquestions = subqs_df,
+      questions = bind_rows(s_questions),
+      choices = bind_rows(s_choices),
+      subquestions = bind_rows(s_subquestions),
       responses = s_resp
   )
 
-  class(survey) <- c("qsurvey", class(survey))
+  ## TODO: nicely change old column names to new with a map
+
   return(survey)
 }
 

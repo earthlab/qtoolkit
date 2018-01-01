@@ -11,6 +11,7 @@
 #' @export
 
 qapi_get_base_url <- function(subdomain) {
+  
   assert_that(is.string(subdomain))
   base_url <- paste0("https://", subdomain, ".qualtrics.com/API/v3/")
 
@@ -189,7 +190,8 @@ qapi_request <- function(verb,
   }
   
   ## If list is paginated, request more if chosen
-  if (!is.na(qapi_resp$result$nextPage) & all.results) {
+  if (!is.null(qapi_resp$result$nextPage) &
+      !is.na(qapi_resp$result$nextPage) & all.results) {
     new_resp <- qapi_request(verb, qapi_resp$result$nextPage, data,
                              auth = auth, all.results = all.results)
 
