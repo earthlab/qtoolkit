@@ -104,6 +104,9 @@ survey <- function(id_or_name,
   s_questions <- bind_rows(s_questions)
   s_choices <- bind_rows(s_choices)
   s_subquestions <- bind_rows(s_subquestions)
+
+  ## Order survey questions by order
+  s_questions <- s_questions[order(s_questions$order),]
   
   ## Compile survey object and rename columns in the process
   survey <- list(
