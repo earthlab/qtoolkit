@@ -1,3 +1,73 @@
+#' auto_rename_and_reorder
+#'
+#' Automatically rename and reorder columns according to map
+#'
+#' @importFrom assertthat assertthat
+#'
+#' @param df Dataframe to rename and reorder columns
+#' @param prefix Optional prefix to add before renamed columns
+#'
+#' @return DF with renamed and reordered columns
+#' @export
+
+auto_rename_and_reorder <- function(df,
+                                    prefix = "") {
+
+  rename.map <- list(
+      ## For (Sub)Questions dataframe
+      "questionType.type"             = "type",
+      "questionType.selector"         = "selector",
+      "questionType.subSelector"      = "subselector",
+      "questionText"                  = "text",
+      "questionLabel"                 = "label",
+      "validation.doesForceResponse"  = "required",
+      "questionName"                  = "name",
+      "order"                         = "order",
+
+      ## For Choices dataframe
+      "description"                   = "desc",
+      "choiceText"                    = "text",
+      "imageDescription"              = "image_desc",
+      "variableName"                  = "var_name"
+  )
+
+  reorder <- c("name", "text", "type", "selector", "subselector",
+               "required")
+
+  ## Add optional prefix before name
+  if (prefix != "") {
+    rename.map <- lapply(rename.map,
+                         function(i) { return(paste0(prefix,"_",i)) })
+    
+    reorder <- sapply(reorder,
+                      function(j) { return(paste0(prefix,"_",j)) },
+                      USE.NAMES = FALSE)
+
+    ## Sneak `qid` in at the front, with no prefix
+    reorder <- c("qid", reorder)
+  }
+
+  ## Rename the colnames
+  all_renames <- names(rename.map)
+  df_names <- names(df)
+  rename_names <- match(all_renames, df_names)
+
+  names(df)[na.omit(rename_names)] <- unlist(rename.map[which(!is.na(rename_names))],
+                                             use.names = FALSE)
+
+  ## Reorder the columns
+  reorder_order <- match(reorder, names(df))
+  dfcols_order <- match(names(df), reorder)
+  
+  matched <- na.omit(reorder_order)
+  unmatched <- which(is.na(dfcols_order))
+
+  df <- df[,c(matched, unmatched)]
+
+  ## Return renamed and reordered DF
+  return(df)
+}
+
 #' strip_html
 #'
 #' Strip HTML tags from string, with RegEx
