@@ -1,4 +1,4 @@
-#' survey
+#' qsurvey
 #'
 #' Qualtrics survey object
 #'
@@ -10,8 +10,8 @@
 #' @return Qualtrics survey object
 #' @export
 
-survey <- function(id_or_name,
-                   strip.html = TRUE) {
+qsurvey <- function(id_or_name,
+                    strip.html = TRUE) {
 
   assertthat(is.string(id_or_name))
 
