@@ -2,7 +2,8 @@
 #'
 #' Qualtrics survey object
 #'
-#' @importFrom assertthat assertthat
+#' @importFrom assertthat assert_that
+#' @importFrom dplyr bind_rows
 #'
 #' @param id_or_name Survey ID or name
 #' @param strip.html Auto-strip HTML from question names & choices
@@ -13,7 +14,7 @@
 qsurvey <- function(id_or_name,
                     strip.html = TRUE) {
 
-  assertthat(is.string(id_or_name))
+  assert_that(is.string(id_or_name))
 
   ## Get a survey by its ID or name, depending on filter passed
   if (grepl("^SV_.+", id_or_name)) {
@@ -97,7 +98,7 @@ qsurvey <- function(id_or_name,
     q_df$qid <- qid
     q_df$order <- as.integer(i)
     
-    s_questions <- c(list(q_df), s_questions)
+    s_questions <- c(s_questions, list(q_df))
   }
 
   ## Concatenate the lists of DFs to one big ole' DF
@@ -105,32 +106,57 @@ qsurvey <- function(id_or_name,
   s_choices <- bind_rows(s_choices)
   s_subquestions <- bind_rows(s_subquestions)
 
-  ## Order survey questions by order
-  s_questions <- s_questions[order(s_questions$order),]
+  ## Order survey questions by order and reset index
+  #s_questions <- s_questions[order(s_questions$order),]
   
   ## Compile survey object and rename columns in the process
+  ## 
   survey <- list(
-      questions = auto_rename_and_reorder(s_questions, "q"),
-      choices = auto_rename_and_reorder(s_choices, "c"),
-      subquestions = auto_rename_and_reorder(s_subquestions, "sq"),
+      questions = auto_reformat(s_questions, "q", strip.html),
+      choices = auto_reformat(s_choices, "c", strip.html),
+      subquestions = auto_reformat(s_subquestions, "sq", strip.html),
       responses = s_resp
   )
 
-  ## TODO: nicely change old column names to new with a map
-  ##       aka, develop auto_rename_and_reorder function!
-
+  ## Class definition and return
+  class(survey) <- "qsurvey"
   return(survey)
 }
 
+#' qquestion
+#'
+#' Qualtrics Survey Question object
+#'
+#' @importFrom assertthat assert_that
+#'
+#' @param survey Qualtrics Survey Object
+#' @param id_or_name Question ID or name
+#'
+#' @return Qualtrics Survey Question object
+#' @export
+
+qquestion <- function(survey, id_or_name) {
+
+  ## User input validation
+  assert_that(is.obj.type(survey, "qsurvey"))
+
+  ##
+  
+
+}
+  
 #' surveys
 #'
-#' qToolkit survey collection object
+#' @importFrom assertthat assert_that
 #'
-#' 
+#' @param filter String filter to match surveys by ID / name, or a dataframe with survey IDs in `id` column
+#'
+#' @return qToolkit survey collection object
 
-surveys <- function(filter) {
+qsurveys <- function(filter) {
+  
   ## User input validation
-  assertthat(!missing(filter))
+  assert_that(!missing(filter))
 
   ## Get list of survey IDs depending on what kind of filter is passed
   if (!is.character(filter) | !grepl("^SV_.+", filter)) {

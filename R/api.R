@@ -56,7 +56,7 @@ qapi_connect <- function(subdomain,
     qapi_subd <- getOption("QAPI_SUBDOMAIN")
     qapi_key <- getOption("QAPI_KEY")
 
-    if (!is.null(qapi_subd) & !is.null(qapi_key)) {
+    if (!is.null(qapi_subd) && !is.null(qapi_key)) {
       qapi_connect(qapi_subd, qapi_key)
     } else {
       stop("No Qualtrics API authentication info found")
@@ -89,7 +89,7 @@ qapi_test <- function(subdomain,
   test_req <- qapi_request("GET", "surveys", auth = test_auth,
                            all.results = FALSE)
   
-  if (!is.null(test_req) & !identical(test_req, FALSE)) {
+  if (!is.null(test_req) && !identical(test_req, FALSE)) {
     cat("Connection successful! (subdomain='", subdomain, "')\n",
         sep = "")
     return(TRUE)
@@ -190,8 +190,8 @@ qapi_request <- function(verb,
   }
   
   ## If list is paginated, request more if chosen
-  if (!is.null(qapi_resp$result$nextPage) &
-      !is.na(qapi_resp$result$nextPage) & all.results) {
+  if (!is.null(qapi_resp$result$nextPage) &&
+      !is.na(qapi_resp$result$nextPage) && all.results) {
     new_resp <- qapi_request(verb, qapi_resp$result$nextPage, data,
                              auth = auth, all.results = all.results)
 

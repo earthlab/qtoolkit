@@ -1,8 +1,23 @@
-#' auto_rename_and_reorder
+#' is.obj.type
 #'
-#' Automatically rename and reorder columns according to map
+#' Test if passed variable is particular object
 #'
-#' @importFrom assertthat assertthat
+#' @param var Object to be tested
+#' @param type Type of object to be tested
+#' 
+#' @return TRUE if object is qsurvey object; otherwise FALSE
+#' @export
+
+is.obj.type <- function(var, type) {
+  return( if (class(var) == type) TRUE else FALSE )
+}
+
+#' auto_format
+#'
+#' Automatically rename, reorder, according to map and optionally
+#' strip HTML from relevant columns
+#'
+#' @importFrom assertthat assert_that
 #'
 #' @param df Dataframe to rename and reorder columns
 #' @param prefix Optional prefix to add before renamed columns
@@ -10,10 +25,15 @@
 #' @return DF with renamed and reordered columns
 #' @export
 
-auto_rename_and_reorder <- function(df,
-                                    prefix = "") {
+auto_reformat <- function(df,
+                          prefix = "",
+                          strip.html = FALSE) {
 
-  rename.map <- list(
+  ## User input validation
+  assert_that(is.data.frame(df))
+
+  ## Map of previous list names to what we want them renamed to
+  rename_map <- list(
       ## For (Sub)Questions dataframe
       "questionType.type"             = "type",
       "questionType.selector"         = "selector",
@@ -31,28 +51,44 @@ auto_rename_and_reorder <- function(df,
       "variableName"                  = "var_name"
   )
 
-  reorder <- c("name", "text", "type", "selector", "subselector",
+  ## List of the ideal order of 
+  reorder <- c("qid", "name", "text", "type", "selector", "subselector",
                "required")
+
+  ## Cols to strip HTML if they exist
+  strip_html_cols <- c("name", "text")
 
   ## Add optional prefix before name
   if (prefix != "") {
-    rename.map <- lapply(rename.map,
-                         function(i) { return(paste0(prefix,"_",i)) })
+
+    ## Prefix function will prefix all fields but qid
+    prefix_fn <- function(field, prefix) {
+      if (field == "qid") {
+        return(field)
+      } else {
+        return(paste0(prefix, "_", field))
+      }
+    }
+
+    ## Apply prefixes to above fields
+    rename_map <- lapply(rename_map,
+                         function(i) { prefix_fn(i, prefix) })
     
     reorder <- sapply(reorder,
-                      function(j) { return(paste0(prefix,"_",j)) },
+                      function(j) { prefix_fn(j, prefix) },
                       USE.NAMES = FALSE)
 
-    ## Sneak `qid` in at the front, with no prefix
-    reorder <- c("qid", reorder)
+    strip_html_cols <- sapply(strip_html_cols,
+                              function(k) { prefix_fn(k, prefix) },
+                              USE.NAMES = FALSE)
   }
 
   ## Rename the colnames
-  all_renames <- names(rename.map)
+  all_renames <- names(rename_map)
   df_names <- names(df)
   rename_names <- match(all_renames, df_names)
 
-  names(df)[na.omit(rename_names)] <- unlist(rename.map[which(!is.na(rename_names))],
+  names(df)[na.omit(rename_names)] <- unlist(rename_map[which(!is.na(rename_names))],
                                              use.names = FALSE)
 
   ## Reorder the columns
@@ -63,6 +99,15 @@ auto_rename_and_reorder <- function(df,
   unmatched <- which(is.na(dfcols_order))
 
   df <- df[,c(matched, unmatched)]
+
+  ## Strip HTML if specified, strip html from the relevant columns
+  if (strip.html) {
+    strip_cols <- na.omit(match(strip_html_cols, names(df)))
+
+    for (col in strip_cols) {
+      df[, col] <- strip_html(df[, col])
+    }
+  }
 
   ## Return renamed and reordered DF
   return(df)

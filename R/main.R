@@ -2,6 +2,8 @@
 #'
 #' Get a survey ID by name
 #'
+#' @importFrom assertthat assert_that
+#' 
 #' @param name Survey name
 #' @param match.exact Search for exact name? (or partial)
 #' @param survey_df Dataframe of available surveys. If NULL, will load search surveys loaded from Qualtrics API
@@ -10,7 +12,7 @@ get_survey_id_by_name <- function(name,
                                   match.exact = TRUE,
                                   surveys_df = NULL) {
   ## Input validation
-  assertthat(!missing(name))
+  assert_that(!missing(name))
 
   ## If the survey DF to search is passed, use that. Or, get survey list
   if (surveys_df == NULL) {
@@ -69,6 +71,7 @@ list_surveys <- function(filter = "",
   ## Get matches from all surveys, and sort by name
   survey_matches <- all_surveys[grep(regex, all_surveys[[filter.prop]]),]
   survey_matches <- survey_matches[order(survey_matches$name),]
+  rownames(survey_matches) <- NULL
 
   ## Check if any surveys were returned
   if (dim(survey_matches)[1] == 0) {
@@ -82,94 +85,6 @@ list_surveys <- function(filter = "",
     return(survey_matches$id)
   } else {
     return(survey_matches)
-  }
-}
-
-find_surveys <- function(filter, match.exact) {
-
-  
-  ## If passed a string filter, use that
-  if (is.character(filter)) {
-    surveys_df <- list_surveys(filter,
-                               match.exact = match.exact)
-  }
-  ## If passed a dataframe, use that
-  else if (is.data.frame(filter)) {
-    if (!("id" %in% names(filter))) {
-      stop("`filter` dataframe must contain at least 'id' column")
-    }
-    
-    surveys_df <- filter
-  }
-  else {
-    stop("`filter` must be either a dataframe or character vector")
-  }
-
-  num_surveys <- dim(surveys_df)[1]
-}
-
-#' get_survey
-#'
-#' Get all metadata of specific survey(s) from API and return
-#' survey design object
-#'
-#' @param filter DF of surveys with survey ids and names, or survey name
-#' @param match.exact Match exact survey name or partial
-#' @param verbose User will see which surveys are being loaded
-#'
-#' @return If one match, return design object of survey. If many, return list of design objects
-#' @export
-
-get_survey <- function(filter,
-                       match.exact = TRUE,
-                       verbose = TRUE) {
-
-  # Handle different possible passed filters and validate
-  if ( is.character(filter) ) {
-    surveys <- list_surveys(filter,
-                            match.exact = match.exact)
-  }
-  else if ( is.data.frame(filter) ) {
-    surveys <- filter
-    survey_cols <- names(surveys)
-
-    # Error if passed DF has insufficient info
-    if (!("id" %in% survey_cols) || !("name" %in% survey_cols)) {
-      stop("`filter` must contain 'id' and 'name' columns")
-    }
-
-  } else {
-    stop("filter is not a valid dataframe or string")
-  }
-  
-  # How many surveys we are loading
-  num_matched <- dim(surveys)[1]
-  
-  # Load design objects of each survey into list
-  surveys_vec <- vector(mode = "list",
-                        length = num_matched)
-  
-  for ( i in 1:num_matched ) {
-    
-    # Let user know of match if verbose
-    if (verbose) {
-      output <- paste0("Loading: ", surveys[i,]$name, "\n")
-      cat(output)
-    }
-
-    # Get survey design from API
-    surveys_vec[[i]] <- qapi_get_survey(surveys[i,]$id)
-
-    # Check if survey has duplicate question number
-    check_duplicate_question(surveys_vec[[i]])
-  }
-
-  # Return one survey design if only one match
-  # If multiple matches, return a list
-  if (num_matched == 1) {
-    return(surveys_vec[[1]])
-  } else {
-    return(surveys_vec)
   }
 }
 

@@ -4,12 +4,14 @@
 \alias{list_surveys}
 \title{list_surveys}
 \usage{
-list_surveys(filter = "", match.exact = FALSE)
+list_surveys(filter = "", match.exact = FALSE, id.only = FALSE)
 }
 \arguments{
 \item{filter}{Complete or partial name of survey}
 
 \item{match.exact}{Match exact survey name or partial}
+
+\item{id.only}{Return DF of survey results or just vector of their IDs}
 }
 \value{
 DF of matched surveys
