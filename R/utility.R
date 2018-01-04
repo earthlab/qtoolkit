@@ -12,6 +12,19 @@ is.obj.type <- function(var, type) {
   return( if (class(var) == type) TRUE else FALSE )
 }
 
+#' empty_to_na
+#'
+#' If dataframe is empty return a NA, otherwise return the dataframe
+#'
+#' @param df Dataframe to test
+#'
+#' @return NA if df is empty; original df if not
+#' @export
+
+empty_to_na <- function(df) {
+  return( if (dim(df)[1] == 0) NA else df )
+}
+
 #' auto_format
 #'
 #' Automatically rename, reorder, according to map and optionally
@@ -51,10 +64,13 @@ auto_reformat <- function(df,
       "variableName"                  = "var_name"
   )
 
-  ## List of the ideal order of 
-  reorder <- c("qid", "name", "text", "type", "selector", "subselector",
-               "required")
+  ## List of the ideal order of columns
+  reorder_cols<- c("qid", "name", "order","text", "type", "selector",
+               "subselector", "required")
 
+  ## Rows to be ordered by
+  reorder_rows <- c("order", "qid")
+  
   ## Cols to strip HTML if they exist
   strip_html_cols <- c("name", "text")
 
@@ -74,13 +90,17 @@ auto_reformat <- function(df,
     rename_map <- lapply(rename_map,
                          function(i) { prefix_fn(i, prefix) })
     
-    reorder <- sapply(reorder,
-                      function(j) { prefix_fn(j, prefix) },
-                      USE.NAMES = FALSE)
+    reorder_cols<- sapply(reorder_cols,
+                          function(j) { prefix_fn(j, prefix) },
+                          USE.NAMES = FALSE)
 
     strip_html_cols <- sapply(strip_html_cols,
                               function(k) { prefix_fn(k, prefix) },
                               USE.NAMES = FALSE)
+
+    reorder_rows <- sapply(reorder_rows,
+                           function(l) { prefix_fn(l, prefix) },
+                           USE.NAMES = FALSE)
   }
 
   ## Rename the colnames
@@ -91,18 +111,26 @@ auto_reformat <- function(df,
   names(df)[na.omit(rename_names)] <- unlist(rename_map[which(!is.na(rename_names))],
                                              use.names = FALSE)
 
+  renamed_cols <- names(df)
+  
   ## Reorder the columns
-  reorder_order <- match(reorder, names(df))
-  dfcols_order <- match(names(df), reorder)
+  reorder_order <- match(reorder_cols, renamed_cols)
+  dfcols_order <- match(renamed_cols, reorder_cols)
   
   matched <- na.omit(reorder_order)
   unmatched <- which(is.na(dfcols_order))
 
   df <- df[,c(matched, unmatched)]
 
+  ## Reorder the rows based upon columns
+  reorder_rows <- na.omit(match(reorder_rows, renamed_cols))
+  
+  row_order <- do.call(order, as.list(df, reorder_rows))
+  df <- df[row_order,]
+
   ## Strip HTML if specified, strip html from the relevant columns
   if (strip.html) {
-    strip_cols <- na.omit(match(strip_html_cols, names(df)))
+    strip_cols <- na.omit(match(strip_html_cols, renamed_cols))
 
     for (col in strip_cols) {
       df[, col] <- strip_html(df[, col])

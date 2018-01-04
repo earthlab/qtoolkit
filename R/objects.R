@@ -106,15 +106,12 @@ qsurvey <- function(id_or_name,
   s_choices <- bind_rows(s_choices)
   s_subquestions <- bind_rows(s_subquestions)
 
-  ## Order survey questions by order and reset index
-  #s_questions <- s_questions[order(s_questions$order),]
-  
   ## Compile survey object and rename columns in the process
   ## 
   survey <- list(
-      questions = auto_reformat(s_questions, "q", strip.html),
-      choices = auto_reformat(s_choices, "c", strip.html),
-      subquestions = auto_reformat(s_subquestions, "sq", strip.html),
+      questions = auto_reformat(s_questions, "", strip.html),
+      choices = auto_reformat(s_choices, "", strip.html),
+      subquestions = auto_reformat(s_subquestions, "", strip.html),
       responses = s_resp
   )
 
@@ -128,21 +125,44 @@ qsurvey <- function(id_or_name,
 #' Qualtrics Survey Question object
 #'
 #' @importFrom assertthat assert_that
+#' @importFrom dplyr filter_
 #'
 #' @param survey Qualtrics Survey Object
-#' @param id_or_name Question ID or name
+#' @param qid_or_name Question ID or name
 #'
 #' @return Qualtrics Survey Question object
 #' @export
 
-qquestion <- function(survey, id_or_name) {
+qquestion <- function(survey, qid_or_name) {
 
   ## User input validation
   assert_that(is.obj.type(survey, "qsurvey"))
 
-  ##
-  
+  ## Determine what attribute to filter by
+  filter <- if(grepl("^QID.+", qid_or_name)) "qid" else "name"
 
+  ## Select row with particular filter
+  filter_logic <- paste0(filter, "==", shQuote(qid_or_name))
+  q_row <- filter_(survey$questions, filter_logic)
+
+  ## Test if there's a question returned
+  if (dim(q_row)[1] != 1) {
+    stop("Cannot find question with ", filter_logic)
+  }
+
+  ## Build qquestion object
+  q_qid <- q_row$qid
+
+  ## Get choices and subqs if they exist
+  choices <- empty_to_na(filter(survey$choices, qid == q_qid))
+  subqs <- empty_to_na(filter(survey$subquestions, qid == q_qid))
+
+  ## Build question object
+  question <- as.list(q_row)
+  
+  class(question) <- "qquestion"
+  
+  return(question)
 }
   
 #' surveys
