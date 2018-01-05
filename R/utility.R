@@ -65,16 +65,16 @@ auto_reformat <- function(df,
   )
 
   ## List of the ideal order of columns
-  reorder_cols<- c("qid", "name", "order","text", "type", "selector",
+  reorder_cols <- c("qid", "name", "order","text", "type", "selector",
                "subselector", "required")
 
   ## Rows to be ordered by
-  reorder_rows <- c("order", "qid")
+  reorder_rows_cols <- c("order", "qid")
   
   ## Cols to strip HTML if they exist
   strip_html_cols <- c("name", "text")
 
-  ## Add optional prefix before name
+  ## Add optional prefix before column names
   if (prefix != "") {
 
     ## Prefix function will prefix all fields but qid
@@ -98,9 +98,9 @@ auto_reformat <- function(df,
                               function(k) { prefix_fn(k, prefix) },
                               USE.NAMES = FALSE)
 
-    reorder_rows <- sapply(reorder_rows,
-                           function(l) { prefix_fn(l, prefix) },
-                           USE.NAMES = FALSE)
+    reorder_rows_cols <- sapply(reorder_rows_cols,
+                                function(l) { prefix_fn(l, prefix) },
+                                USE.NAMES = FALSE)
   }
 
   ## Rename the colnames
@@ -123,12 +123,14 @@ auto_reformat <- function(df,
   df <- df[,c(matched, unmatched)]
 
   ## Reorder the rows based upon columns
-  reorder_rows <- na.omit(match(reorder_rows, renamed_cols))
+  ## In case anyone's reading, R is an unnecessarily difficult language
+  reorder_rows <- na.omit(match(reorder_rows_cols, renamed_cols))
+  reorder_rows_list <- lapply(reorder_rows, function(r) { return(df[,r]) })
   
-  row_order <- do.call(order, as.list(df, reorder_rows))
+  row_order <- do.call(order, reorder_rows_list)
   df <- df[row_order,]
 
-  ## Strip HTML if specified, strip html from the relevant columns
+  ## If specified, strip html from the relevant columns
   if (strip.html) {
     strip_cols <- na.omit(match(strip_html_cols, renamed_cols))
 
