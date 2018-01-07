@@ -246,8 +246,15 @@ qapi_response_export <- function(survey_id) {
   assert_that(is.string(survey_id))
 
   ## Send request to start survey response export
+  ## Random future end date used to ensure export is always new data
+  ## (ref: https://api.qualtrics.com/docs/create-response-export)
+  fake_end_date <- sprintf("%d-%02d-%02dT12:00:00Z",
+                           sample(2100:9999, 1),
+                           sample(01:12, 1),
+                           sample(01:28, 1))
   create_data <- list(surveyId = survey_id,
-                      format = "csv")
+                      format = "csv",
+                      endDate = fake_end_date)
   
   create_resp <- qapi_request("POST",
                               "responseexports",
