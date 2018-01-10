@@ -80,7 +80,7 @@ auto_reformat <- function(df,
                     "subselector", "required")
 
   ## Rows to be ordered by
-  reorder_rows_cols <- c("b_order", "order", "qid")
+  reorder_rows_cols <- c("bid", "b_order", "order", "qid")
   
   ## Cols to strip HTML if they exist
   strip_html_cols <- c("name", "text")
@@ -244,7 +244,7 @@ type_acronym_to_text <- function(acronym) {
       "DB"    = "Graphic / Text Box",
       "MC"    = "Multiple Choice",
       "TE"    = "Text Entry",
-      "SBS"   = "Side by Side"
+      "SBS"   = "Side by Side",
       "PTB"   = "Plain Text Box",
       "TB"    = "Text Box",
       "GRB"   = "Graphics Box",
@@ -284,6 +284,7 @@ type_acronym_to_text <- function(acronym) {
 #' @param lst Named list
 #'
 #' @return Dataframe
+#' @export
 
 nested_list_to_df <- function(lst) {
 

@@ -55,7 +55,6 @@ qsurvey <- function(id_or_name,
     q_qquestion <- qquestion(q_meta, q_resp)
 
     ## Add qquestion to list of qquestions
-    ##s_qquestions <- c(list(s_qquestions), q_qquestion)
     s_qquestions[[qid]] <- q_qquestion
   }
 
@@ -64,9 +63,15 @@ qsurvey <- function(id_or_name,
                             function(q) {
                               return(as.data.frame(q[c(1:9)]))
                             })
-  s_question_list <- bind_rows(question_list)
-  s_question_list <- auto_reformat(question_list)
+  s_question_list <- bind_rows(s_question_list)
+  s_question_list <- auto_reformat(s_question_list)
 
+  ## Parse survey "flow"
+  s_flow <- nested_list_to_df(s_meta$flow)
+  s_flow <- auto_reformat(s_flow, "b")
+  s_flow <- cbind(s_flow, desc = NA)
+  names(s_flow)[names(s_flow) == "id"] <- "bid" ## Change block id to bid
+  
   ## Generate DF of survey blocks
   s_blocks <- data.frame()
   
@@ -78,11 +83,10 @@ qsurvey <- function(id_or_name,
     b_meta <- bs[[bid]]
 
     b <- nested_list_to_df(b_meta$elements)
-    
-    b <- cbind(b_order = j,
-               b_id = bid,
-               b_desc = b_meta$description,
-               b)
+    b <- cbind(bid = bid, b)
+
+    ## Add the block description to the survey flow DF row with bid
+    s_flow[s_flow$bid == bid,]$desc <- b_meta$description
 
     s_blocks <- bind_rows(s_blocks, b)
   }
@@ -90,29 +94,30 @@ qsurvey <- function(id_or_name,
   s_blocks <- auto_reformat(s_blocks, reorder.cols = FALSE)
     
   ## Generate list of respondents
-  respondent_cols <- names(sv$responses)[c(1:11)]
-  s_respondents <- sv$responses[,respondent_cols]
+  s_respondent_cols <- names(s_resp)[c(1:11)]
+  s_respondents <- s_resp[,s_respondent_cols]
   
   ## Class definition and return
   survey <- list(
       meta = list(
-          id = s_meta$id,
-          name = s_meta$name,
-          owner_id = s_meta$ownerId,
+          id              = s_meta$id,
+          name            = s_meta$name,
+          owner_id        = s_meta$ownerId,
           organization_id = s_meta$organizationId,
-          is_active = s_meta$isActive,
-          created = s_meta$creationDate,
-          last_modified = s_meta$lastModifiedDate,
-          expiration = list(
+          is_active       = s_meta$isActive,
+          created         = s_meta$creationDate,
+          last_modified   = s_meta$lastModifiedDate,
+          expiration      = list(
               start = s_meta$expiration$startDate,
-              end = s_meta$expiration$endDate
+              end   = s_meta$expiration$endDate
           )
       ),
       questionList = s_question_list,
-      questions = s_qquestions,
-      respondents = s_respondents,
-      responses = s_resp,
-      blocks = s_blocks
+      questions    = s_qquestions,
+      respondents  = s_respondents,
+      responses    = s_resp,
+      flow         = s_flow,
+      blocks       = s_blocks
   )
 
   ## Add raw JSON if specified
