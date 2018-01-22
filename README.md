@@ -2,7 +2,6 @@
 R package to process and visualize Qualtrics survey data via the Qualtrics API
 
 ### Quick Start
-
 ```
 ## Install qtoolkit (requires `devtools` package)
 install.packages("devtools")
@@ -46,6 +45,4 @@ devtools::install_github("earthlab/qtoolkit")
 
 ## Get a particular question by QID
 > sv$questions$QID15
-
-
 ```
