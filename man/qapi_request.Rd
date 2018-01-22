@@ -14,9 +14,9 @@ qapi_request(verb, method, data = list(), content.as = "text",
 
 \item{data}{Named list with request payload data}
 
-\item{content.as}{"text" or "raw" depending on if JSON or raw data returned}
+\item{content.as}{"text" or "raw" depending on if ASCII or raw data returned}
 
-\item{auth}{Qualtrics API authentication to use}
+\item{auth}{Qualtrics API authentication to use; if NULL, load auth from options()}
 
 \item{all.results}{Return all results if paginated, or just one page}
 }

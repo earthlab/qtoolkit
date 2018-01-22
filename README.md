@@ -1,40 +1,51 @@
-# qualtrics-toolkit
-R package to process and visualize qualtrics survey data
+# qtoolkit
+R package to process and visualize Qualtrics survey data via the Qualtrics API
 
-## Getting Started
-
-### Installation
+### Quick Start
 
 ```
-## devtools needed to install R package from GitHub
+## Install qtoolkit (requires `devtools` package)
 install.packages("devtools")
-
-## install qsurvey package from GitHub
-devtools::install_github("jamesdunham/qsurvey")
-
-## install this package
 devtools::install_github("earthlab/qtoolkit")
+
+## Connect to Qualtrics API
+> qapi_connect(org_id  = "OrganizationID",
+               api_key = "abcdefghijklmnopqrstuvwxyz")
+               
+## List surveys
+> list_surveys()
+
++-------------------+-----------------+-------------------+---------------------+-----------+
+|        id         |      name       |      ownerId      |    lastModified     | isActive  |
++-------------------+-----------------+-------------------+---------------------+-----------+
+| SV_aBcDeFgHiJkLmN | Customer Survey | UR_AbCdEfGhIjkLmN | 2017-12-1222:17:40Z | TRUE      |
++-------------------+-----------------+-------------------+---------------------+-----------+
+| SV_ZyXwVuTsRqPoNm | Employee Survey | UR_zYxWvUtSrQpOnM | 2017-12-3010:20:22Z | FALSE     |
++-------------------+-----------------+-------------------+---------------------+-----------+
+
+## Get survey
+> sv <- qsurvey("SV_aBcDeFgHiJkLmN")
+
+## List survey questions
+> sv$questionList
+
++----+-------+------+-------+-------------+------+----------+-------------+----------+----------+
+|    |  qid  | name | order |    text     | type | selector | subselector | required |  label   |
++----+-------+------+-------+-------------+------+----------+-------------+----------+----------+
+|  1 | QID15 | Q1   |     1 | Question 1  | DB   | TB       | NA          | FALSE    | Label 1  |
+|  2 | QID18 | Q2   |     2 | Question 2  | DB   | TB       | NA          | FALSE    | Label 2  |
+|  3 | QID36 | Q37  |     3 | Question 3  | TE   | SL       | NA          | FALSE    | Label 3  |
+|  4 | QID38 | Q379 |     4 | Question 4  | MC   | SAVR     | NA          | FALSE    | Label 4  |
+|  5 | QID37 | Q36  |     5 | Question 5  | MC   | MAVR     | NA          | FALSE    | Label 5  |
+|  6 | QID1  | Q3   |     6 | Question 6  | MC   | SAVR     | NA          | FALSE    | Label 6  |
+|  7 | QID31 | Q30  |     7 | Question 7  | MC   | MAVR     | NA          | FALSE    | Label 7  |
+|  8 | QID23 | Q26  |     8 | Question 8  | MC   | MAVR     | NA          | FALSE    | Label 8  |
+|  9 | QID34 | Q99  |     9 | Question 9  | MC   | MAVR     | NA          | FALSE    | Label 9  |
+| 10 | QID2  | Q4   |    10 | Question 10 | MC   | SAVR     | NA          | FALSE    | Label 10 |
++----+-------+------+-------+-------------+------+----------+-------------+----------+----------+
+
+## Get a particular question by QID
+> sv$questions$QID15
+
+
 ```
-
-### Setting up API authentication
-
-1. Find your API Key
-   * Go to [subdomain].qualtrics.com and log in
-   * Click on your user icon > Account Settings...
-   * Select the Qualtrics IDs tab
-   * Your API token is listed under the "API" heading
-   * [Here is an easy access link to this page on the cuboulder domain](https://cuboulder.qualtrics.com/ControlPanel/?ClientAction=ChangePage&Section=QualtricsIdsSection)
-
-2. Create a `.qualtrics_api_key` file
-   * The ideal way to connect is by having a file in your home directory `.qualtrics_api_key`
-   * Open your favorite text editor
-   * Paste in your API key and save the file as `~/.qualtrics_api_key`
-   * This way your key will be automatically loaded whenever you connect, and won't be included in plaintext in any scripts you write
-   
-## Example Usage
-
-Check out the vignettes/ folder for some example usage cases.
-
-## Style Guide
-
-http://adv-r.had.co.nz/Style.html

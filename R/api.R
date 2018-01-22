@@ -1,19 +1,19 @@
 #' qapi_base_url
 #'
-#' Return a Qualtrics API base URL based upon subdomain
+#' Return a Qualtrics API base URL based upon org_id
 #'
 #' @importFrom assertthat assert_that
 #' @importFrom assertthat is.string
 #' 
 #' @param subdomain Qualtrics subdomain
 #'
-#' @return String of Qualtrics API base URL
+#' @return String of Qualtrics API base URL using org_id
 #' @export
 
-qapi_get_base_url <- function(subdomain) {
+qapi_get_base_url <- function(org_id) {
   
-  assert_that(is.string(subdomain))
-  base_url <- paste0("https://", subdomain, ".qualtrics.com/API/v3/")
+  assert_that(is.string(org_id))
+  base_url <- paste0("https://", org_id, ".qualtrics.com/API/v3/")
 
   return(base_url)
 }
@@ -25,39 +25,48 @@ qapi_get_base_url <- function(subdomain) {
 #' @importFrom assertthat assert_that
 #' @importFrom assertthat is.string
 #' 
-#' @param subdomain Qualtrics subdomain with which to get surveys
-#' @param key Qualtrics API key for API access
-#' @param file File from which to load Qualtrics API Auth info
+#' @param org_id Qualtrics org_id with which to get surveys
+#' @param api_key Qualtrics API key
+#' @param auth_file File from which to source Qualtrics API auth info
 #' @export
 
-qapi_connect <- function(subdomain,
-                         key,
-                         auth_file = ".qapi_auth.R") {
+qapi_connect <- function(org_id,
+                         api_key,
+                         auth_file = ".qapi_auth.R",
+                         verbose = FALSE) {
   
-  ## If subdomain and key are provided, attempt to connect with that
-  if (!missing(subdomain) & !missing(key)) {
-    assert_that(is.string(subdomain))
-    assert_that(is.string(key))
+  ## If org_id and key are provided, attempt to connect with that
+  if (!missing(org_id) & !missing(api_key)) {
+    assert_that(is.string(org_id))
+    assert_that(is.string(api_key))
 
-    if (qapi_test(subdomain, key)) {
-      qapi_auth <- list(subdomain = subdomain,
-                        api_key = key)
+    tc <- tryCatch({
+      test <- qapi_test(org_id, api_key, verbose = verbose)
+
+      ## If test is successful, set QAPI_AUTH to valid credentials
+      qapi_auth <- list(org_id = org_id,
+                        api_key = api_key)
 
       options(QAPI_AUTH = qapi_auth)
-    } else {
-      cat("Connection successful!")
-    }
+    }, error = function(e) {
+      msg <- paste(e[[1]], "", "Connection unsuccessful!",
+                   paste0("  org_id = '", org_id, "'"),
+                   paste0("  api_key = '", api_key, "'\n"),
+                   sep = "\n")
+      cat(msg)
+    })
   } else {
     ## If the auth_file exists, source it to get user-defined auth
     ## values stored in options(); if not, see if those values are set
     ## anyways (perhaps w/ .Rprofile) and attempt connection with those
     if (file.exists(auth_file)) source(auth_file)
 
-    qapi_subd <- getOption("QAPI_SUBDOMAIN")
-    qapi_key <- getOption("QAPI_KEY")
+    qapi_subd <- getOption("QAPI_ORG_ID")
+    qapi_key <- getOption("QAPI_API_KEY")
 
     if (!is.null(qapi_subd) && !is.null(qapi_key)) {
-      qapi_connect(qapi_subd, qapi_key)
+      qapi_connect(qapi_subd, qapi_key,
+                   verbose = verbose)
     } else {
       stop("No Qualtrics API authentication info found")
     }
@@ -71,27 +80,31 @@ qapi_connect <- function(subdomain,
 #' @importFrom assertthat assert_that
 #' @importFrom assertthat is.string
 #' 
-#' @param subdomain Qualtrics subdomain to test
+#' @param org_id Qualtrics org_id to test
 #' @param key Qualtrics API key to test
 #' 
-#' @return True if successful, or will error if not
+#' @return True if connection successful; error if not
 #' @export
 
-qapi_test <- function(subdomain,
-                      key) {
+qapi_test <- function(org_id,
+                      key,
+                      verbose = FALSE) {
 
-  assert_that(is.string(subdomain))
+  assert_that(is.string(org_id))
   assert_that(is.string(key))
 
-  test_auth <- list(subdomain = subdomain,
+  test_auth <- list(org_id = org_id,
                     api_key = key)
   
   test_req <- qapi_request("GET", "surveys", auth = test_auth,
                            all.results = FALSE)
   
   if (!is.null(test_req) && !identical(test_req, FALSE)) {
-    cat("Connection successful! (subdomain='", subdomain, "')\n",
-        sep = "")
+    if (verbose) {
+      cat("Connection successful! (org_id='", org_id, "')\n",
+          sep = "")
+    }
+    
     return(TRUE)
   }
 }
@@ -105,7 +118,7 @@ qapi_test <- function(subdomain,
 
 qapi_get_auth <- function() {
   
-  auth_keys <- c("api_key", "subdomain")
+  auth_keys <- c("api_key", "org_id")
   qapi_auth <- getOption("QAPI_AUTH")
 
   if (is.null(qapi_auth)) {
@@ -133,8 +146,8 @@ qapi_get_auth <- function() {
 #' @param verb Request type (GET, POST, ...)
 #' @param method API call method (surveys, reponseexports, ...) or full API URL
 #' @param data Named list with request payload data
-#' @param content.as "text" or "raw" depending on if JSON or raw data returned
-#' @param auth Qualtrics API authentication to use
+#' @param content.as "text" or "raw" depending on if ASCII or raw data returned
+#' @param auth Qualtrics API authentication to use; if NULL, load auth from options()
 #' @param all.results Return all results if paginated, or just one page
 #' 
 #' @return Named list of JSON decoded response content
@@ -161,7 +174,7 @@ qapi_request <- function(verb,
   if (grepl("^https*://", method)) {
     qapi_url <- method
   } else {
-    qapi_url <- paste0(qapi_get_base_url(auth$subdomain), method)
+    qapi_url <- paste0(qapi_get_base_url(auth$org_id), method)
   }
 
   ## Set up & send API Request
@@ -205,7 +218,8 @@ qapi_request <- function(verb,
 
 #' qapi_error
 #'
-#' Handle errors caused by Qualtrics API request
+#' Handle errors caused by Qualtrics API request, either errors thrown by
+#' Qualtrics API or the HTTP request
 #'
 #' @param request httr request object of the Qualtrics API request
 
@@ -231,6 +245,7 @@ qapi_error <- function(request) {
 #' qapi_response_export
 #'
 #' Get DF of survey responses from Qualtrics API
+#' https://api.qualtrics.com/docs/create-response-export
 #'
 #' @importFrom assertthat assert_that
 #' @importFrom assertthat is.string
@@ -327,7 +342,8 @@ qapi_list_surveys <- function() {
 
 #' qapi_get_survey
 #'
-#' QAPI call to get metadata about a particular survey1
+#' QAPI call to get metadata about a particular survey
+#' https://api.qualtrics.com/docs/get-survey
 #'
 #' @param survey_id
 #'

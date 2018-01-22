@@ -33,7 +33,7 @@ qsurvey <- function(id_or_name,
   s_meta <- qapi_get_survey(survey_id)
   s_resp <- qapi_response_export(survey_id)
   
-  ## Initialize questionList and qquestionsb
+  ## Initialize and qquestions list
   s_qquestions <- list()
   
   ## Loop thru all returned questions (use seq_along to keep track of order)
@@ -60,9 +60,7 @@ qsurvey <- function(id_or_name,
 
   ## Generate question list from qquestion objects
   s_question_list <- lapply(s_qquestions,
-                            function(q) {
-                              return(as.data.frame(q[c(1:9)]))
-                            })
+                            function(q) { return(q$meta) })
   s_question_list <- bind_rows(s_question_list)
   s_question_list <- auto_reformat(s_question_list)
 
@@ -70,7 +68,7 @@ qsurvey <- function(id_or_name,
   s_flow <- nested_list_to_df(s_meta$flow)
   s_flow <- auto_reformat(s_flow, "b")
   s_flow <- cbind(s_flow, desc = NA)
-  names(s_flow)[names(s_flow) == "id"] <- "bid" ## Change block id to bid
+  names(s_flow)[names(s_flow) == "id"] <- "bid" ## Change block 'id' to 'bid'
   
   ## Generate DF of survey blocks
   s_blocks <- data.frame()
@@ -112,7 +110,7 @@ qsurvey <- function(id_or_name,
               end   = s_meta$expiration$endDate
           )
       ),
-      questionList = s_question_list,
+      questionList = auto_reformat(s_question_list), ## TODO:: why must this be done twice ??
       questions    = s_qquestions,
       respondents  = s_respondents,
       responses    = s_resp,

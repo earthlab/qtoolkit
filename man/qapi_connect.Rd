@@ -4,14 +4,14 @@
 \alias{qapi_connect}
 \title{qapi_connect}
 \usage{
-qapi_connect(subdomain, key, auth_file = ".qapi_auth.R")
+qapi_connect(org_id, api_key, auth_file = ".qapi_auth.R", verbose = FALSE)
 }
 \arguments{
-\item{subdomain}{Qualtrics subdomain with which to get surveys}
+\item{org_id}{Qualtrics org_id with which to get surveys}
 
-\item{key}{Qualtrics API key for API access}
+\item{api_key}{Qualtrics API key}
 
-\item{file}{File from which to load Qualtrics API Auth info}
+\item{auth_file}{File from which to source Qualtrics API auth info}
 }
 \description{
 Open a connection to Qualtrics API with login info

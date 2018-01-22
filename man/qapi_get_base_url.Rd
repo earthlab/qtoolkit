@@ -4,14 +4,14 @@
 \alias{qapi_get_base_url}
 \title{qapi_base_url}
 \usage{
-qapi_get_base_url(subdomain)
+qapi_get_base_url(org_id)
 }
 \arguments{
 \item{subdomain}{Qualtrics subdomain}
 }
 \value{
-String of Qualtrics API base URL
+String of Qualtrics API base URL using org_id
 }
 \description{
-Return a Qualtrics API base URL based upon subdomain
+Return a Qualtrics API base URL based upon org_id
 }

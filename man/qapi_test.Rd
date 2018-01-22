@@ -4,15 +4,15 @@
 \alias{qapi_test}
 \title{qapi_test}
 \usage{
-qapi_test(subdomain, key)
+qapi_test(org_id, key, verbose = FALSE)
 }
 \arguments{
-\item{subdomain}{Qualtrics subdomain to test}
+\item{org_id}{Qualtrics org_id to test}
 
 \item{key}{Qualtrics API key to test}
 }
 \value{
-True if successful, or will error if not
+True if connection successful; error if not
 }
 \description{
 Test Qualtrics API connection

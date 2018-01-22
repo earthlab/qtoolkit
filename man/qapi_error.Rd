@@ -10,5 +10,6 @@ qapi_error(request)
 \item{request}{httr request object of the Qualtrics API request}
 }
 \description{
-Handle errors caused by Qualtrics API request
+Handle errors caused by Qualtrics API request, either errors thrown by
+Qualtrics API or the HTTP request
 }

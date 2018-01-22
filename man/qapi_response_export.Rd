@@ -14,4 +14,5 @@ DF of survey responses
 }
 \description{
 Get DF of survey responses from Qualtrics API
+https://api.qualtrics.com/docs/create-response-export
 }

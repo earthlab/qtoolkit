@@ -16,21 +16,23 @@ is.obj.type <- function(var, type) {
 #'
 #' Loop thru list and turn empty dataframes and lists into NA
 #'
-#' @param list list to test
+#' @param list List to test
 #'
 #' @return original list with empty elements NA
 #' @export
 
-empty_to_na <- function(list) {
-  lapply(list,
-         function(el) {
-           if (is.list(el) && length(el) == 0) return(NA)
-           if (is.data.frame(el) && dim(el)[1] == 0) return(NA)
-           return(el)
-         })
+empty_to_na <- function(lst) {
+  lst <- lapply(lst,
+                function(el) {
+                  if (is.list(el) && length(el) == 0) return(NA)
+                  if (is.data.frame(el) && dim(el)[1] == 0) return(NA)
+                  return(el)
+                })
+
+  return(lst)
 }
 
-#' auto_format
+#' auto_reformat
 #'
 #' Automatically rename, reorder, according to map and optionally
 #' strip HTML from relevant columns
@@ -138,7 +140,7 @@ auto_reformat <- function(df,
   }
   
   ## Reorder the rows based upon columns
-  ## In case anyone's reading, R is an unnecessarily difficult language
+  ## In case anyone's reading, R is an unnecessarily diffict language
   if (reorder.rows) {
     reorder_rows <- na.omit(match(reorder_rows_cols, renamed_cols))
     reorder_rows_list <- lapply(reorder_rows, function(r) { return(df[,r]) })
@@ -195,21 +197,19 @@ strip_html <- function(text,
 #'
 #' @param survey Survey object to check
 #' @param fatal Stop execution if duplicate question, or no
-#'
-#' @export
 
 check_duplicate_question <- function(survey,
                                      fatal = FALSE) {
 
-                                        # Get DF of question_ids and question_nums
+    ## Get DF of question_ids and question_nums
   qs_map <- data.frame(question_id = names(survey$questionMap),
                        question_num = unlist(survey$questionMap),
                        row.names = NULL)
-  
-                                        # Count distinct question_ids
+    
+    ## Count distinct question_ids
   qs_test <- dplyr::count(qs_map, question_num)
 
-                                        # Select if any questions have over 1 record and error if so
+    ## Select if any questions have over 1 record and error if so
   qs_test <- dplyr::filter(qs_test, n>1)
   num_dupes <- dim(qs_test)[1]
   
@@ -231,11 +231,11 @@ check_duplicate_question <- function(survey,
 
 #' type_acronym_to_text
 #'
-#' Convert acronym of question type, selector, and subselector to human readable
+#' Convert acronym of question type/selector/subselector to human readable
 #'
 #' @param acronym Acronym to convert to human readable text
 #'
-#' @return Long text form of acronym if acronym is known, else empty string
+#' @return Long text form of acronym if acronym is known, or empty string
 #' @export
 
 type_acronym_to_text <- function(acronym) {
@@ -277,17 +277,17 @@ type_acronym_to_text <- function(acronym) {
 
 #' nested_list_to_df
 #'
-#' Convert a named list to dataframe & preserve type
+#' Convert a named list to dataframe and preserve type
 #'
 #' @importFrom dplyr bind_rows
 #'
 #' @param lst Named list
 #'
-#' @return Dataframe
+#' @return Dataframe instead of nested List
 #' @export
 
 nested_list_to_df <- function(lst) {
-
+  
   ## es:   list elements
   ## eids: list elements ids
   ## eid:  list element id
@@ -311,7 +311,7 @@ nested_list_to_df <- function(lst) {
     ## Filter out empty lists if they exist cause that breaks everything
     ## And turn named list into a dataframe
     e <- Filter(lengths, e)
-    e_df <- as.data.frame(e)
+    e_df <- as.data.frame(e, stringsAsFactors = FALSE)
 
     ## Add order to df
     e_df$order <- as.integer(j)
@@ -322,6 +322,7 @@ nested_list_to_df <- function(lst) {
 
   ## Turn element list to DF with dplyr and return
   ## dplyr used b/c rows may not all have same column headings
+
   es_df <- bind_rows(es_list)
 
   return(es_df)  
