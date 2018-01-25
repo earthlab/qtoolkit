@@ -1,156 +1,93 @@
-#' get_responses
+#' get_survey_id_by_name
 #'
-#' Get responses for a particular survey question
+#' Get a survey ID by name
 #'
-#' @importFrom dplyr select
-#' @importFrom dplyr starts_with
-#' @importFrom dplyr matches
-#' @export
+#' @importFrom assertthat assert_that
 #' 
-#' @param survey Survey Object
-#' @param question_num Question Number or Vector of Question Numbers
-#' @param metadata Include metadata about each participant in DF
-#' @param melt Melt data from a DF into key=>value DF
-#' @param rm.other Remove "Other" responses from MC questions
-#' @param rm.blank Remove Blank responses from MC/matrix questions
-#' 
-#' @return DF of survey question answers
+#' @param name Survey name
+#' @param match.exact Search for exact name? (or partial)
+#' @param surveys_df Dataframe of available surveys. If NULL, will load search surveys loaded from Qualtrics API
+#'
+#' @return Survey ID
 
-get_responses <- function(survey,
-                          question_num = ".*",
-                          metadata = TRUE,
-                          melt = FALSE,
-                          rm.other = TRUE,
-                          rm.blank = TRUE) {
+get_survey_id_by_name <- function(name,
+                                  match.exact = TRUE,
+                                  surveys_df = NULL) {
+  ## Input validation
+  assert_that(!missing(name))
+  cat(name)
 
-  ## Get survey responses from Qualtrics API
-  question_num <- paste(question_num, collapse = "|")
-  num_filter <- paste0("^(", question_num, ")(\\_|$)")
-  
-  resp <- qsurvey::responses(survey)
-  q_resp <- select(resp, starts_with("ResponseID"),
-                   matches(num_filter))
-
-  ## Check if any responses returned and if
-  ## any of the columns match the relevant question
-  if (nrow(q_resp) == 0) {
-    stop("No responses returned")
-  } else if (length(q_resp) < 2) {
-    stop("No questions match '", question_num, "'")
+  ## If the survey DF to search is passed, use that. Or, get survey list
+  if (is.null(surveys_df)) {
+    surveys_df <- qapi_list_surveys()
   }
 
-  ## Append metadata to the response if specified
-  if (metadata == TRUE) {
-    q_metadata <- select(resp, -starts_with("Q"))
-    q_resp<- merge(q_metadata, q_resp)
+  ## Build regex to match name
+  if (match.exact == TRUE) {
+    regex <- paste0("^", name, "$")
   } else {
-    q_resp<- select(q_resp, matches(num_filter))
+    regex <- paste0(".*", name, ".*")
   }
 
-  ## Melt the data if told so
-  if (melt == TRUE) {
-    q_resp <- tidyr::gather(q_resp)
+  ## Find matched surveys & error if none are matched
+  matches <- surveys_df[grep(regex, surveys_df[["name"]]),]
 
-    if (rm.other == TRUE) {
-      q_resp <- filter(q_resp, !str_detect(value, "Other"),
-                       !grepl("_TEXT$", key))
-    }
+  if (dim(matches)[1] == 0) {
+    msg.txt <- if (match.exact) "exact " else "partial "
+    stop("No surveys matched with ", msg.txt, "name '", name, "'")
+  }
 
-    if (rm.blank == FALSE) {
-      q_resp <- filter(q_resp, !(value == ""))
-    }
-  }    
-
-  return(q_resp)
+  ## Order matches by name and return ids
+  matches <- matches[order(matches$name),]
+  return(matches$id)
 }
 
-#' get_questions
+#' list_surveys
 #'
-#' Get info about question(s) asked in a particular survey
+#' Select surveys available, optionally matching survey name or ID.
 #'
-#' @importFrom dplyr filter
-#' @importFrom tidyr gather
+#' @param filter Complete or partial name of survey
+#' @param match.exact Match exact survey name or partial
+#' @param id.only Return DF of survey results or just vector of their IDs
+#'
+#' @return DF of matched surveys
 #' @export
-#' 
-#' @param survey Survey Design Object
-#' @param question_num Question number (ie "Q10")
-#' @param question_id Question ID (ie "QID9")
-#'
-#' @return DF of matching questions
 
-get_questions <- function(survey,
-                          question_num = ".*",
-                          question_id = "QID.*") {
-
-  ## Get survey questions from qsurvey API
-  qs <- qsurvey::questions(survey)
-
-  ## Filter questions by names passed
-  num_filter <- paste0("^", question_num, "(\\_|$)")
-  id_filter <- paste0("^", question_id, "(\\_|$)")
+list_surveys <- function(filter = "",
+                         match.exact = FALSE,
+                         id.only = FALSE) {
   
-  q_resp <- filter(qs, grepl(num_filter, export_name),
-                   grepl(id_filter, question_id))
+  ## Detect filter type by filter string
+  ## If filter is an ID perform an exact match
+  filter.prop <- if (grepl("^SV_.+", filter)) "id" else "name"
+  match.exact <- if (filter.prop == "id") TRUE else match.exact
 
-  ## Check if question has been matched or no
-  if (nrow(q_resp) == 0) {
-    stop("No questions match question_num~='", question_num,
-         "' and question_id~='", question_id, "'")
+  ## Get all surveys
+  all_surveys <- qapi_list_surveys()
+
+  ## Build regex to match exact or not
+  if (match.exact == TRUE) {
+    regex <- paste0("^", filter, "$")
+  } else {
+    regex <- paste0(".*", filter, ".*")
+  }
+    
+  ## Get matches from all surveys, and sort by name
+  survey_matches <- all_surveys[grep(regex, all_surveys[[filter.prop]]),]
+  survey_matches <- survey_matches[order(survey_matches$name),]
+  rownames(survey_matches) <- NULL
+
+  ## Check if any surveys were returned
+  if (dim(survey_matches)[1] == 0) {
+    msg.txt <- if (match.exact) "exact " else "partial "
+    stop("No surveys matched with ", msg.txt, filter.prop,
+         " '", filter, "'")
   }
 
-  ## Rename column question_text to question_title
-  ## Add column question_text as stripped HTML from question_title
-  q_resp$question_raw <- q_resp$question_text
-  q_resp$question_text <- strip_html(q_resp$question_raw)
-
-  ## Add question number column (turns Q9_1 into Q9)
-  q_resp$question_num <- sub("^(.*?)(\\_|#|$).*", "\\1",
-                             q_resp$export_name)
-
-  return(q_resp)
-}
-
-
-#' get_choices
-#'
-#' Get possible choices for a particular question
-#'
-#' @importFrom dplyr filter
-#' @export
-#'
-#' @param survey Survey Design Object
-#' @param question_num Question number (ie "Q10")
-#' @param question_id Question ID (ie "QID9")
-#'
-#' @return DF of choices for each question
-#'
-#' @export
-
-get_choices <- function(survey,
-                        question_num = ".*",
-                        question_id = "QID.*") {
-
-  ## Get choices from qsurvey API
-  cs <- qsurvey::choices(survey)
-
-  ## Get DF question_id => question_num map & join to choices
-  qs_map <- data.frame(question_id = names(survey$questionMap),
-                       question_num = unlist(survey$questionMap),
-                       row.names = NULL)
-  cs <- merge(qs_map, cs)
-
-  ## Filter choices by question num/id
-  num_filter <- paste("^", question_num, "(\\_|$)",  sep="")
-  id_filter <- paste("^", question_id, "(\\_|$)", sep="")
-
-  c_resp <- filter(cs, grepl(id_filter, question_id),
-                   grepl(num_filter, question_num))
-
-  ## Return just a vector of choices if question num or id is specified
-  ## Choices are returned in order they're displayed on survey
-  if (question_num != "Q.*" || question_id != "QID.*") {
-    c_resp <- unique(c_resp[order(c_resp$choice_id),]$choice_text)
+  ## Return id only if specified; otherwise return the DF
+  if (id.only) {
+    return(survey_matches$id)
+  } else {
+    return(survey_matches)
   }
-
-  return(c_resp)
 }

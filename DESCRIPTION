@@ -7,10 +7,13 @@ Description: Toolkit for processing and visualizing Qualtrics Surveys
 Depends: R (>= 3.2.3)
 Imports:
     dplyr,
-    qsurvey,
     tidyr,
-    magrittr
+    magrittr,
+    assertthat,
+    httr,
+    RJSONIO
 License: MIT
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
+Roxygen: list(markdown = FALSE)
