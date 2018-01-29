@@ -118,6 +118,9 @@ qsurvey <- function(id_or_name,
       blocks       = s_blocks
   )
 
+  ## Check for duplicate questions
+  check_duplicate_questions(survey)
+
   ## Add raw JSON if specified
   if (include.raw) {
     survey$raw = s_meta
