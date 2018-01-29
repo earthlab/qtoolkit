@@ -12,6 +12,22 @@ is.obj.type <- function(var, type) {
   return( if (class(var) == type) TRUE else FALSE )
 }
 
+#' split_strings
+#' 
+#' Wrap long strings at x characters for pretty plotting and data viz.
+#' 
+#' @param string of type char: the string that needs to be wrapped
+#' @param nchar number of characters to insert a \n after - default: 35
+#' 
+#' @return a string with line breaks at every n_char characters
+#' @export
+
+split_strings <- function(string, nchar = 35) {
+  paste(strwrap(string, width = nchar), collapse = "\n")
+}
+
+split_strings <-  Vectorize(split_strings)
+
 #' empty_to_na
 #'
 #' Loop thru list and turn empty dataframes and lists into NA
