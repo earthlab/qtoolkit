@@ -190,26 +190,25 @@ strip_html <- function(text,
   return(stripped)
 }
 
-#' check_duplicate_question
+#' check_duplicate_questions
 #'
 #' Check whether a survey has a duplicate question number and report
 #' to user if it does
 #'
 #' @param survey Survey object to check
 #' @param fatal Stop execution if duplicate question, or no
+#' @export
 
-check_duplicate_question <- function(survey,
+check_duplicate_questions <- function(survey,
                                      fatal = FALSE) {
 
-    ## Get DF of question_ids and question_nums
-  qs_map <- data.frame(question_id = names(survey$questionMap),
-                       question_num = unlist(survey$questionMap),
-                       row.names = NULL)
-    
-    ## Count distinct question_ids
-  qs_test <- dplyr::count(qs_map, question_num)
+  ## Get DF of question_ids and question_nums
+  qs_list <- survey$questionList
+  
+  ## Count distinct question_ids
+  qs_test <- dplyr::count(qs_list, name)
 
-    ## Select if any questions have over 1 record and error if so
+  ## Select if any questions have over 1 record and error if so
   qs_test <- dplyr::filter(qs_test, n>1)
   num_dupes <- dim(qs_test)[1]
   
@@ -217,7 +216,7 @@ check_duplicate_question <- function(survey,
     for ( dupe_num in 1:num_dupes ) {
       record <- qs_test[dupe_num,]
       msg <- paste0("'", survey$name, "' has ", record$n,
-                    " questions named '", record$question_num, "'")
+                    " questions named '", record$name, "'")
       
       if ( fatal == TRUE ) {
         stop(msg, call. = FALSE)
