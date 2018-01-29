@@ -4,7 +4,7 @@
 \alias{split_strings}
 \title{Wrap long strings at x characters for pretty plotting and data viz.}
 \usage{
-split_strings(string, n_char = 35)
+split_strings(string, nchar = 35)
 }
 \arguments{
 \item{string}{of type char: the string that needs to be wrapped}
