@@ -1,4 +1,7 @@
-# Contributions
+# Contributions To Other Packages
+
+The text below documents contributions made to the qsurvey package maintained by James Dunham. We began to build this package off of that but decided to diverge when we needed different types of functionality.
+
 
 ## qsurvey
 
