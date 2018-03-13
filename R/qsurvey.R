@@ -1,4 +1,4 @@
-#' get_survey
+#' qsurvey
 #'
 #' Qualtrics survey object
 #'
@@ -15,7 +15,7 @@
 #' @return Qualtrics survey object
 #' @export
 
-get_survey <- function(id_or_name,
+qsurvey <- function(id_or_name,
                     strip.html = TRUE,
                     include.raw = FALSE) {
 
@@ -51,8 +51,23 @@ get_survey <- function(id_or_name,
 
     ## Select the responses (and ResponseID) for only this question,
     ## pass that to create new qquestion object along with metadata
-    q_resp <- select(s_resp, "ResponseID", starts_with(q_meta$questionName))
+   
+    # if it's a matrix question, grab questions that have _
+    # if not, then grab questions that equal the question name
+    # note this is problematic for duplicates
+    
+   if (q_meta$questionType$type == "Matrix" | q_meta$questionType$type == "MC") {
+     q_resp <- select(s_resp, "ResponseID", starts_with(paste0(q_meta$questionName, "_")))
+   } else {
+     q_resp <- select(s_resp, "ResponseID", q_meta$questionName)
+   }
+    
+    #all_cols <- colnames(q_qquestion$responses)
     q_qquestion <- qquestion(q_meta, q_resp)
+    # because the first column is the ID and we want to 
+    # this will return both q4 and q42
+    # this should explicetely tell it what columns to grab as associate with the qid avoiding duplicate issues
+    #q_resp <- select(s_resp, "ResponseID", (all_cols[2:length(all_cols)]))
 
     ## Add qquestion to list of qquestions
     s_qquestions[[qid]] <- q_qquestion
