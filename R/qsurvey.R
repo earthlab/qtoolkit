@@ -75,7 +75,7 @@ qsurvey <- function(id_or_name,
   
   bs <- s_meta$blocks
   bids <- names(bs)
-
+  # Added line to remove empty blocks
   for (j in seq_along(bids)) {
     bid <- bids[[j]]
     b_meta <- bs[[bid]]
@@ -84,6 +84,10 @@ qsurvey <- function(id_or_name,
     b <- cbind(bid = bid, b)
 
     ## Add the block description to the survey flow DF row with bid
+    # but first, remove block rows where bid == NA
+    # note that this is a quirk in qualtrics as i can see the empty blocks in the flow 
+    # but they are not in the survey. Digging into why this happens
+    s_flow <- s_flow[complete.cases(s_flow$bid), ]
     s_flow[s_flow$bid == bid,]$desc <- b_meta$description
 
     s_blocks <- bind_rows(s_blocks, b)
