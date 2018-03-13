@@ -1,4 +1,4 @@
-#' qsurvey
+#' get_survey
 #'
 #' Qualtrics survey object
 #'
@@ -15,7 +15,7 @@
 #' @return Qualtrics survey object
 #' @export
 
-qsurvey <- function(id_or_name,
+get_survey <- function(id_or_name,
                     strip.html = TRUE,
                     include.raw = FALSE) {
 
