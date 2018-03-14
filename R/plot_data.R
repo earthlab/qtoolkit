@@ -68,10 +68,10 @@ get_subq <- function(subq_df){
 #' @export
 #' 
 
-get_ques_resp <- function(quest_obj) {
+get_question_resp <- function(quest_obj) {
   
   # then gather the data
-  fin_resp <- quest_obj %>% 
+  fin_resp <- quest_obj$responses %>% 
     gather(key = "qnum", value = "recode", -ResponseID)
   
   # if it has choices (define questions types then)
@@ -89,4 +89,6 @@ get_ques_resp <- function(quest_obj) {
     separate(qnum, into = c("qnum", "subqnum"), sep = "_") %>% 
     mutate(subqnum = as.integer(subqnum)) %>% 
     left_join(subq, by = c("subqnum" = "recode"))
+  
+  return(fin_resp)
 }
