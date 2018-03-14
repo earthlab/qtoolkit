@@ -56,7 +56,10 @@ qsurvey <- function(id_or_name,
     # if not, then grab questions that equal the question name
     # note this is problematic for duplicates
     
-   if (q_meta$questionType$type == "Matrix" | q_meta$questionType$type == "MC") {
+    # question types that have _ as heading - ie sub components
+    qsub <- c("Matrix", "MC", "TE")
+    
+   if (q_meta$questionType$type %in% qsub) {
      q_resp <- select(s_resp, "ResponseID", starts_with(paste0(q_meta$questionName, "_")))
    } else {
      q_resp <- select(s_resp, "ResponseID", q_meta$questionName)
