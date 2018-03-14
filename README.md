@@ -6,10 +6,10 @@ Qualtrics API in order to download surveys, view survey questions and associated
 
 ## Get API Data
 
-To access the Qualtrics API, you need to do the followin
+To access the Qualtrics API, you need to do the following:
 
-1. Find your baseurl and API token.
-2. Add both items information to your .Rprofile file.
+1. Find your `baseurl` and API token.
+2. Add both items information to your `.Rprofile` file.
 
 Once you do this, you can use the qualtrics API from any working directory.
 
@@ -17,12 +17,13 @@ Once you do this, you can use the qualtrics API from any working directory.
 ### Organization ID
 
 FIRST, you need the Organization ID which is the "server" space where your version of
-qualtrics lives. The url looks something like
+qualtrics lives. The url looks something like:
 `https://yourdomainhere.qualtrics.com`. For CU it's
 
 Example: https://cuboulder.qualtrics.com
 
-Follow the [Base URL and Datacenter IDs baseurl documentation](https://api.qualtrics.com/docs/root-url)to find the base url of your qualtrics account.
+Follow the [Base URL and Datacenter IDs baseurl documentation](https://api.qualtrics.com/docs/root-url) to find the base url of
+your qualtrics account.
 
 Important - `qtoolkit` only requests your domain and will generate the full url
 for you. So following the example above, you only need to add `cuboulder` to
@@ -41,21 +42,26 @@ the API for your account.
 
 ### Update Your .Rprofile File
 
-Once you have accessed your organization id and API Token, add the following text
-to your .Rprofile file.  Tihs file is located in your HOME DIRECTORY of your computer.
+Once you have accessed your organization id and API Token, you are ready to
+authenticate. The preferred method of doing this is to add the text below (replacing
+it with your OrganizationId and api keys) to your `.Rprofile` file.
+
+The `.Rprofile` file is located in your HOME DIRECTORY of your computer.
 If you are using bash, you can use `cd ~` to quickly navigate to your home directory.
-Then open .Rprofile in your favorite text editor and add the following:
+Then open `.Rprofile` in your favorite text editor and add the following:
 
 ```
 options(QAPI_ORG_ID  = "OrganizationId",
         QAPI_API_KEY = "abcdefghijklmnopqrstuvwxyz")
 ```
 
+Check out the vignette on authentication to read about the other ways to pass
+your key to qualtrics.
 
 ## Start Using qtoolkit
 
-Once you have the authentication information above, you are read to work with Qtoolkit.
-First, install the package from the Earth  Lab github organization.
+Once you have the authentication information above, you are read to work with `Qtoolkit`.
+First, install the package from the Earth Lab github organization.
 
 
 ```
@@ -63,7 +69,8 @@ First, install the package from the Earth  Lab github organization.
 install.packages("devtools")
 devtools::install_github("earthlab/qtoolkit")
 ```
-Next, connect to the api.If you added the authentication to your .Rprofile file
+
+Next, connect to the api. If you added the authentication to your `.Rprofile` file
 following the instructions above, you can connect as follows:
 
 ```
@@ -71,10 +78,10 @@ following the instructions above, you can connect as follows:
 qapi_connect()
 ```
 
-If that information is not in the .Rprofile file, then you can manually connect
+If that information is not in the `.Rprofile` file, then you can manually connect
 by typing in your organization id and api_key. WARNING: do not commit this information
-into version control or share it with anyone! We highly suggest that you use the `.Rprofile`
-instructions above!
+into version control or share it with anyone! We highly suggest that you use
+the `.Rprofile` instructions above!
 
 ```
 ## Connect to Qualtrics API
@@ -83,8 +90,8 @@ instructions above!
 ```
 
 Once you have connected to the API, you can view all of the surveys in your account.
-list_surveys will return a data.frame with the survey id, name and a few other key
-attributes.
+`list_surveys()` returns a `data.frame` with the survey id, name and a few other
+key attributes.
 
 ```
 ## List surveys
@@ -98,8 +105,11 @@ attributes.
 | SV_ZyXwVuTsRqPoNm | Employee Survey | UR_zYxWvUtSrQpOnM | 2017-12-3010:20:22Z | FALSE     |
 +-------------------+-----------------+-------------------+---------------------+-----------+
 ```
-Once you know what survey you want, you can access it using qsurvey.
-LEAH NOTE: I think this should be get_survey()
+Once you know what survey you want, you can access it using `qsurvey()`. qsurvey()
+returns a survey object with all of the wonderful metadata that you could ever want
+to process, clean up and visualize your data.
+
+**LEAH NOTE: I think this should be get_survey()**
 
 ```
 ## Get survey
