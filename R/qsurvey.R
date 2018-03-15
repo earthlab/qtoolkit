@@ -57,9 +57,10 @@ qsurvey <- function(id_or_name,
     # note this is problematic for duplicates
     
     # question types that have _ as heading - ie sub components
-    qsub <- c("Matrix", "MC", "TE")
+    qsub <- c("Matrix", "MC")
     
-   if (q_meta$questionType$type %in% qsub) {
+    # TE only has _ subs IF it's of sub type form - there must be a better way to parse this...
+   if (q_meta$questionType$type %in% qsub | q_meta$questionType$selector == "FORM") {
      q_resp <- select(s_resp, "ResponseID", starts_with(paste0(q_meta$questionName, "_")))
    } else {
      q_resp <- select(s_resp, "ResponseID", q_meta$questionName)
