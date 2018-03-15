@@ -16,7 +16,7 @@
 #' @export
 
 qsurvey <- function(id_or_name,
-                    strip.html = TRUE,
+                    strip_html = TRUE,
                     include.raw = FALSE) {
 
   assert_that(is.string(id_or_name))
@@ -57,7 +57,8 @@ qsurvey <- function(id_or_name,
     # note this is problematic for duplicates
     
     # question types that have _ as heading - ie sub components
-    qsub <- c("Matrix", "MC")
+    # sbs is side by side matrix type
+    qsub <- c("Matrix", "MC", "SBS")
     
     # TE only has _ subs IF it's of sub type form - there must be a better way to parse this...
    if (q_meta$questionType$type %in% qsub | q_meta$questionType$selector == "FORM") {
@@ -68,10 +69,6 @@ qsurvey <- function(id_or_name,
     
     #all_cols <- colnames(q_qquestion$responses)
     q_qquestion <- qquestion(q_meta, q_resp)
-    # because the first column is the ID and we want to 
-    # this will return both q4 and q42
-    # this should explicetely tell it what columns to grab as associate with the qid avoiding duplicate issues
-    #q_resp <- select(s_resp, "ResponseID", (all_cols[2:length(all_cols)]))
 
     ## Add qquestion to list of qquestions
     s_qquestions[[qid]] <- q_qquestion
@@ -81,7 +78,8 @@ qsurvey <- function(id_or_name,
   s_question_list <- lapply(s_qquestions,
                             function(q) { return(q$meta) })
   s_question_list <- bind_rows(s_question_list)
-  s_question_list <- auto_reformat(s_question_list)
+  s_question_list <- auto_reformat(s_question_list, 
+                                   strip.html = strip_html)
 
   ## Parse survey "flow"
   s_flow <- nested_list_to_df(s_meta$flow)
@@ -111,8 +109,10 @@ qsurvey <- function(id_or_name,
 
     s_blocks <- bind_rows(s_blocks, b)
   }
-
-  s_blocks <- auto_reformat(s_blocks, reorder.cols = FALSE)
+  
+  s_blocks <- auto_reformat(s_blocks, 
+                            reorder.cols = FALSE, 
+                            strip.html = strip_html)
     
   ## Generate list of respondents
   s_respondent_cols <- names(s_resp)[c(1:11)]
@@ -133,8 +133,9 @@ qsurvey <- function(id_or_name,
               end   = s_meta$expiration$endDate
           )
       ),
-      questionList = auto_reformat(s_question_list), ## TODO:: why must this be done twice ??
-      questions    = s_qquestions,
+      questionList = auto_reformat(s_question_list, 
+                                   strip.html = strip_html), ## TODO:: why must this be done twice ??
+      questions    = s_qquestions, ## the choices and questions are not being cleaned
       respondents  = s_respondents,
       responses    = s_resp,
       flow         = s_flow,
@@ -143,6 +144,7 @@ qsurvey <- function(id_or_name,
 
   ## Check for duplicate questions
   check_duplicate_questions(survey)
+  
 
   ## Add raw JSON if specified
   if (include.raw) {

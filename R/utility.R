@@ -4,7 +4,7 @@
 #'
 #' @param var Object to be tested
 #' @param type Type of object to be tested
-#' 
+#'
 #' @return TRUE if object is qsurvey object; otherwise FALSE
 #' @export
 
@@ -13,12 +13,12 @@ is.obj.type <- function(var, type) {
 }
 
 #' split_strings
-#' 
+#'
 #' Wrap long strings at x characters for pretty plotting and data viz.
-#' 
+#'
 #' @param string of type char: the string that needs to be wrapped
 #' @param nchar number of characters to insert a \n after - default: 35
-#' 
+#'
 #' @return a string with line breaks at every n_char characters
 #' @export
 
@@ -55,7 +55,7 @@ empty_to_na <- function(lst) {
 #'
 #' @importFrom assertthat assert_that
 #'
-#' @param df Dataframe to rename and reorder columns
+#' @param df data.frame to rename and reorder columns
 #' @param prefix Optional prefix to add before renamed columns
 #'
 #' @return DF with renamed and reordered columns
@@ -99,7 +99,7 @@ auto_reformat <- function(df,
 
   ## Rows to be ordered by
   reorder_rows_cols <- c("bid", "b_order", "order", "qid")
-  
+
   ## Cols to strip HTML if they exist
   strip_html_cols <- c("name", "text")
 
@@ -118,7 +118,7 @@ auto_reformat <- function(df,
     ## Apply prefixes to above fields
     rename_map <- lapply(rename_map,
                          function(i) { prefix_fn(i, prefix) })
-    
+
     reorder_cols<- sapply(reorder_cols,
                           function(j) { prefix_fn(j, prefix) },
                           USE.NAMES = FALSE)
@@ -143,28 +143,28 @@ auto_reformat <- function(df,
 
     renamed_cols <- names(df)
   }
-  
+
   ## Reorder the columns
   if (reorder.cols) {
     reorder_order <- match(reorder_cols, renamed_cols)
     dfcols_order <- match(renamed_cols, reorder_cols)
-  
+
     matched <- na.omit(reorder_order)
     unmatched <- which(is.na(dfcols_order))
 
     df <- df[,c(matched, unmatched)]
   }
-  
+
   ## Reorder the rows based upon columns
   ## In case anyone's reading, R is an unnecessarily diffict language
   if (reorder.rows) {
     reorder_rows <- na.omit(match(reorder_rows_cols, renamed_cols))
     reorder_rows_list <- lapply(reorder_rows, function(r) { return(df[,r]) })
-  
+
     row_order <- do.call(order, reorder_rows_list)
     df <- df[row_order,]
   }
-  
+
   ## If specified, strip html from the relevant columns
   if (strip.html) {
     strip_cols <- na.omit(match(strip_html_cols, renamed_cols))
@@ -181,10 +181,10 @@ auto_reformat <- function(df,
 #' strip_html
 #'
 #' Strip HTML tags from string, with RegEx
-#' 
+#'
 #' @param text Text to strip HTML from
 #' @param consolidate Consolidate stripped HTML; Turn line break into a space, collapse extra spaces.
-#' 
+#'
 #' @return Text with HTML stripped
 #' @export
 
@@ -220,20 +220,20 @@ check_duplicate_questions <- function(survey,
 
   ## Get DF of question_ids and question_nums
   qs_list <- survey$questionList
-  
+
   ## Count distinct question_ids
   qs_test <- dplyr::count(qs_list, name)
 
   ## Select if any questions have over 1 record and error if so
   qs_test <- dplyr::filter(qs_test, n>1)
   num_dupes <- dim(qs_test)[1]
-  
+
   if ( num_dupes > 0 ) {
     for ( dupe_num in 1:num_dupes ) {
       record <- qs_test[dupe_num,]
       msg <- paste0("'", survey$name, "' has ", record$n,
                     " questions named '", record$name, "'")
-      
+
       if ( fatal == TRUE ) {
         stop(msg, call. = FALSE)
       } else {
@@ -254,7 +254,7 @@ check_duplicate_questions <- function(survey,
 #' @export
 
 type_acronym_to_text <- function(acronym) {
-  
+
   acronym_map <- list(
       "DB"    = "Graphic / Text Box",
       "MC"    = "Multiple Choice",
@@ -302,12 +302,12 @@ type_acronym_to_text <- function(acronym) {
 #' @export
 
 nested_list_to_df <- function(lst) {
-  
+
   ## es:   list elements
   ## eids: list elements ids
   ## eid:  list element id
   ## e:    list element
-  
+
   ## Get elements of list and their names
   es <- lst
   eids <- names(es)
@@ -340,5 +340,5 @@ nested_list_to_df <- function(lst) {
 
   es_df <- bind_rows(es_list)
 
-  return(es_df)  
+  return(es_df)
 }

@@ -38,16 +38,17 @@ get_choices <- function(choices_df) {
 #' @importFrom dplyr select
 #' @importFrom dplyr rename
 #'
-#' @param subq_df choicse sub object pulled from the qsurvey object.
+#' @param subq_df choices sub object pulled from the qsurvey object.
 #'
 #' @return data.frame of subquestions ready to be merged with the main question df
 #' @export
 #'
 
-
+# this is not ideal ## TODO: ensure strip html is applied to all list elements in class
 get_subq <- function(subq_df){
   fin_subq <- subq_df %>%
-    mutate(desc = strip_html(desc),
+    mutate(text = strip_html(text),
+           desc = strip_html(desc),
            recode = as.integer(recode)) %>%
     rename(question = text, qdescription = desc)
   return(fin_subq)
@@ -79,7 +80,7 @@ get_question_resp <- function(quest_obj) {
 
   # if the object has choices then join the choices to the question for plotting annalysis
   if (!is.null(quest_obj$choices)){
-    # if a question has no choicses i may be able to test for that in the object?? not sure
+    # if a question has no choices i may be able to test for that in the object?? not sure
   choices <- get_choices(quest_obj$choices)
 
   fin_resp <- fin_resp %>%
