@@ -1,0 +1,112 @@
+---
+title: "QToolkit 101: Get Survey Data"
+author: "Leah Wasser"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Getting Survey Data From Qualtrics
+
+To begin, you need to have your API key setup. The example below assumes that you
+have your key setup in your `.Rprofile` file OR in an .auth file in your working directory.
+Refer to the API connect vignette for more details on that!
+
+```{r connect, message=FALSE}
+options(stringsAsFactors = FALSE)
+library(qtoolkit)
+# still working on only importing the pipe element in the package.
+# https://github.com/sckott/analogsea/issues/32
+# note currently i need to just load the pipe and also stringsasfactors as false
+library(dplyr)
+## Connect to Qualtrics API
+qapi_connect()
+
+```
+
+Once you have connected to the api, you can quickly view all of the survesy that
+you have access to through that API key. These are the same surveys you would see
+when you login to your Qualtrics account.
+
+```{r view-survey-list}
+all_surveys <- list_surveys()
+head(all_surveys)
+
+```
+
+The first column in the output data.frame from the `list_surveys()` function is
+the survey ID for each survey. You can use that ID to grab the survey that you'd
+like.
+
+Note - there is also some functionality built in to grab that by name but that
+is still in beta. The output of `qsurvey()` is a `qsurvey` object. this object
+contains both the question and response data and metadata all together in one
+happy place.
+
+```{r}
+# define survey id variable
+survey_id <- "SV_8eniB7oV1RlHMwd"
+my_survey_ob <- qsurvey(survey_id)
+```
+
+Be forewarned that this will take a minute to populate as it needs to hit
+hit the qualtrics API, access the survey and populate the object with all
+of the data.
+
+IMPORTANT: you must have internet access for this step to work properly as it
+is hitting another server to get your survey data!
+
+Once this step is successful, the real fun can begin.
+
+## View Survey Questions
+
+First, check out all of the questions in the survey. The returned object here
+contains the question udm bane and order. Pay close attention to the `qid` which is
+DIFFERENCE from the name. The name is what you see in Qualtrics. The problem with
+the name is that you can have 2 questions with the same name in Qualtrics.
+
+Thus, when you get a question in qtoolkit, you will use the qid NOT the name
+that you see (and can change) in Qualtrics.
+
+```{r}
+my_survey_ob$questionList
+
+
+```
+
+Let's first break down how the qsurvey object is organized. Each question can
+be found in the `questions$qidhere` slot of the object. AGAIN note that the
+qid is the UNIQUE ID that qualtrics provides each question. The name is something
+that you can change so don't use that!
+
+If you want to get all of the data for a question with id `QID71`, you can use:
+
+```{r}
+# get responses and question information for qid71.
+q71 <- my_survey_ob$questions$QID71
+str(q71)
+```
+
+```{r}
+# it would be nice if this took the choices and made them factors
+# should this be a default for a likert scale? 
+question_responses <- get_question_resp(q71)
+head(question_responses)
+```
+
+Now you can plot! Let's pretend we just want a plain old bar plot of 
+responses
+
+```{r}
+library(ggplot2)
+question_responses %>% 
+  group_by(question, qchoice) %>% 
+  count() %>% 
+  ggplot(aes(x = qchoice, y = n)) +
+  geom_bar(stat = "identity")
+
+```
+
