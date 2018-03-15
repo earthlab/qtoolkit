@@ -7,7 +7,7 @@
 get_subq(subq_df)
 }
 \arguments{
-\item{subq_df}{choicse sub object pulled from the qsurvey object.}
+\item{subq_df}{choices sub object pulled from the qsurvey object.}
 }
 \value{
 data.frame of subquestions ready to be merged with the main question df

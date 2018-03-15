@@ -4,7 +4,7 @@ author: "Leah Wasser & Davey Levin"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{QToolkit 101: Get Survey Data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -48,7 +48,7 @@ HINT:
 TO find your .Rprofile file. Open terminal (on a mac) or gitbash on a pc. and cd
 to your home directory.
 
-```{shell}
+```{bash, eval = FALSE}
 # cd to your home directory
 cd .
 # open r profile in your favorite text editor. below we use vim

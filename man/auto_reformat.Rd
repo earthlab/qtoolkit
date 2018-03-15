@@ -8,7 +8,7 @@ auto_reformat(df, prefix = "", rename.cols = TRUE, reorder.rows = TRUE,
   reorder.cols = TRUE, strip.html = FALSE)
 }
 \arguments{
-\item{df}{Dataframe to rename and reorder columns}
+\item{df}{data.frame to rename and reorder columns}
 
 \item{prefix}{Optional prefix to add before renamed columns}
 }
