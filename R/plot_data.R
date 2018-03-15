@@ -71,16 +71,20 @@ get_subq <- function(subq_df){
 get_question_resp <- function(quest_obj) {
   
   # then gather the data
+  # note that "recode is the response value here (i *think*) TODO: look into json structure
   fin_resp <- quest_obj$responses %>% 
-    gather(key = "qnum", value = "recode", -ResponseID)
-  
-  # if it has choices (define questions types then)
-  # if a question has no choicses i may be able to test for that in the object?? not sure
+    gather(key = "qnum", value = "response", -ResponseID)
+
+  # if the object has choices then join the choices to the question for plotting annalysis
+  if (!is.null(quest_obj$choices)){
+    # if a question has no choicses i may be able to test for that in the object?? not sure
   choices <- get_choices(quest_obj$choices)
   
   fin_resp <- fin_resp %>% 
-    left_join(choices, by = c("recode" = "recode"))
+    left_join(choices, by = c("response" = "recode"))
+  }
   
+  if (!is.null(quest_obj$subquestions)){
   # if there are subquestions 
   subq <- get_subq(quest_obj$subquestions)
   
@@ -89,6 +93,6 @@ get_question_resp <- function(quest_obj) {
     separate(qnum, into = c("qnum", "subqnum"), sep = "_") %>% 
     mutate(subqnum = as.integer(subqnum)) %>% 
     left_join(subq, by = c("subqnum" = "recode"))
-  
+  }
   return(fin_resp)
 }
