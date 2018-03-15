@@ -7,7 +7,7 @@
 get_choices(choices_df)
 }
 \arguments{
-\item{choices_df}{choicse sub object pulled from the qsurvey object.}
+\item{choices_df}{choices sub object pulled from the qsurvey object.}
 }
 \value{
 data.frame of choices ready to be merged with the main question df
