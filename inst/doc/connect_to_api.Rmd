@@ -1,0 +1,94 @@
+---
+title: "QToolkit 101: Get Survey Data"
+author: "Leah Wasser & Davey Levin"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{QToolkit 101: Get Survey Data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## How to Connect to the Qualtrics API with qToolkit
+
+The `qapi_connect` function attempts an API connection to Qualtrics with the
+necessary credentials (`org_id` and `api_key`). These credentials can be passed
+one of three ways to the `qapi_connect` function.
+
+Please note that the first method shown below is the preferred method! The other
+two options are available to use if you need them.
+
+### Add `org_id` and `api_key` to your ~/.Rprofile File
+
+The `.Rprofile` file is a hidden file located in the home directory of your
+computer. If you add your qualtrics credentials to this file, then you can
+automagically connect to the qualtrics API and access all of your surveys,
+without having to pass additional information.
+
+Modifying your `.Rprofile` file is *preferred* as it stores your credentials in a
+hidden file that you are not likely to push to github or drop box or some other
+more public facing api.
+
+To modify your .Rprofile file,
+
+1. open up your `~/.Rprofile` file (depending on your distribution, this path may differ). You may find using shell or bash to find the file is preferred. Then place the following code
+into the file:
+
+```{r}
+options(QAPI_ORG_ID  = "OrganizationId",
+        QAPI_API_KEY = "abcdefghijklmnopqrstuvwxyz")
+```
+
+where `QAPI_ORG_ID` is your `org_id` and `QAPI_API_KEY` is your `api_key`.
+
+Once your credentials are stored in the `.Rprofile`, you can call  `qapi_connect()`
+with no parameters as the script will load the credentials from `~/.Rprofile`.
+
+HINT:
+TO find your .Rprofile file. Open terminal (on a mac) or gitbash on a pc. and cd
+to your home directory.
+
+```{shell}
+# cd to your home directory
+cd .
+# open r profile in your favorite text editor. below we use vim
+vim .Rprofile
+
+```
+
+### Add an Auth File To Your `R` Working Directory
+
+Sometimes you may be using different qualtrics instances with different authentication
+for different projects. In this case, you can add an auth_file to a working directory
+with unique credentials for that R working directory.
+
+To use this option, create the `auth_file` in the current working directory and
+add to it the same lines as you would add to your `~/.Rprofile` file above, like so:
+
+```{r, eval=FALSE}
+options(QAPI_ORG_ID  = "OrganizationId",
+        QAPI_API_KEY = "abcdefghijklmnopqrstuvwxyz")
+```
+
+To load these credentials you call `qapi_connect()` with no parameters. The script
+will load the credentials from the `auth_file`.
+
+By default, the `auth_file` the script looks for is `.qapi_auth.R` in the current
+working directory, but this filename can also be specified as a parameter in the
+`qapi_connect()` call, as shown below:
+
+```{r, eval = FALSE}
+qapi_connect(auth_file = "~/.qapi_credentials.R")
+```
+
+### Supply the `org_id` and `api_key` in the `qapi_connect` string
+
+This method is the *least preferred* as it hardcodes sensitive API information
+into survey analysis scripts. This should only be used for testing purposes,
+or if the `org_id` and `api_key` you want to use differs from that stored in `options()`
+
+```{r, eval=FALSE}
+qapi_connect(org_id = "OrganizationID",
+             api_key = "abcdefghijklmnopqrstuvwxyz")
+
+```
