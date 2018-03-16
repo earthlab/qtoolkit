@@ -10,7 +10,7 @@
 
 qquestion <- function(q_meta, q_resp) {
 
-  ## Standard attribues that every question has
+  ## Standard attributes that every question has
   qq <- list(
     meta       = list(
       qid         = q_meta$questionID,
@@ -47,10 +47,13 @@ qquestion <- function(q_meta, q_resp) {
 
 qquestion.MC <- function(q_meta, q_resp) {
 
-  choices <- nested_list_to_df(q_meta$choices)
+  choices_t <- nested_list_to_df(q_meta$choices)
 
   qq_extra <- list(
-      choices = auto_reformat(choices)
+    # this is almost working but for some reason it's missing SOME rows
+      choices <- auto_reformat(choices_t,
+                               reorder.rows = FALSE,
+                               strip.html = TRUE)
   )
 
   return(qq_extra)

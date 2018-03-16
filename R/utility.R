@@ -74,6 +74,7 @@ auto_reformat <- function(df,
   ## Map of previous list names to what we want them renamed to
   rename_map <- list(
       ## For (Sub)Questions - changing the name to distinguish between questions and choices
+    # this currently is not working as planned
       "questionType.type"             = "quest_type",
       "questionType.selector"         = "quest_selector",
       "questionType.subSelector"      = "quest_subselector",
@@ -94,19 +95,23 @@ auto_reformat <- function(df,
   )
 
   ## List of the ideal order of columns
-  reorder_cols <- c("qid", "quest_name", "quest_order","quest_text", "quest_type", "quest_selector",
+  reorder_cols <- c("qid", "quest_name", "quest_order","quest_text", 
+                    "quest_type", "quest_selector",
                     "quest_subselector", "quest_required")
 
   ## Rows to be ordered by
   reorder_rows_cols <- c("bid", "b_order", "order", "qid")
 
   ## Cols to strip HTML if they exist
-  strip_html_cols <- c("quest_name", "quest_text")
+  strip_html_cols <- c("quest_name", "quest_text", 
+                       "choice_desc", "choice_text", 
+                       "name", "text", "desc")
 
   ## Add optional prefix before column names
   if (prefix != "") {
 
     ## Prefix function will prefix all fields but qid
+    # this function should be SEPARATE as a diff utility. not here. 
     prefix_fn <- function(field, prefix) {
       if (field == "qid") {
         return(field)
@@ -156,7 +161,6 @@ auto_reformat <- function(df,
   }
 
   ## Reorder the rows based upon columns
-  ## In case anyone's reading, R is an unnecessarily diffict language
   if (reorder.rows) {
     reorder_rows <- na.omit(match(reorder_rows_cols, renamed_cols))
     reorder_rows_list <- lapply(reorder_rows, function(r) { return(df[,r]) })
@@ -166,11 +170,13 @@ auto_reformat <- function(df,
   }
 
   ## If specified, strip html from the relevant columns
+  # cleaned this up to get it working
+  
   if (strip.html) {
-    strip_cols <- na.omit(match(strip_html_cols, renamed_cols))
-
-    for (col in strip_cols) {
-      df[, col] <- strip_html(df[, col])
+    cols_to_clean <- renamed_cols[renamed_cols %in% strip_html_cols]
+    
+    for (col in cols_to_clean) {
+      df[,col] <- strip_html(df[,col])
     }
   }
 

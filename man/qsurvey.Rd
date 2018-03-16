@@ -4,14 +4,14 @@
 \alias{qsurvey}
 \title{qsurvey}
 \usage{
-qsurvey(id_or_name, strip_html = TRUE, include.raw = FALSE)
+qsurvey(id_or_name, strip.html = TRUE, include.raw = FALSE)
 }
 \arguments{
 \item{id_or_name}{Survey ID or name}
 
-\item{include.raw}{Include raw JSON in survey object}
-
 \item{strip.html}{Auto-strip HTML from question names & choices}
+
+\item{include.raw}{Include raw JSON in survey object}
 }
 \value{
 Qualtrics survey object

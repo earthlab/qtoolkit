@@ -25,7 +25,6 @@ library(qtoolkit)
 library(dplyr)
 ## Connect to Qualtrics API
 qapi_connect()
-
 ```
 
 Once you have connected to the api, you can quickly view all of the surveys that
@@ -58,7 +57,7 @@ my_survey_ob <- qsurvey(survey_id)
 
 Be forewarned that this will take a minute to populate as it needs to:
 
-1. hit the qualtrics API,
+1. Hit the qualtrics API,
 2. access the survey and
 3. populate the object with all of the data.
 

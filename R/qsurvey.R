@@ -16,7 +16,7 @@
 #' @export
 
 qsurvey <- function(id_or_name,
-                    strip.html = TRUE,
+                    clean_html = TRUE,
                     include.raw = FALSE) {
 
   assert_that(is.string(id_or_name))
@@ -48,28 +48,31 @@ qsurvey <- function(id_or_name,
     ## Add qid and order to question metadata
     q_meta$questionOrder <- as.integer(i)
     q_meta$questionID <- qid
+    
+    # clean up choices here?
 
     ## Select the responses (and ResponseID) for only this question,
     ## pass that to create new qquestion object along with metadata
    
-    # if it's a matrix question, grab questions that have _
-    # if not, then grab questions that equal the question name
-    # note this is problematic for duplicates
+    # better approach - regex baby! NOTE - this will STILL FAIL for the user if there are duplicate col names
+    all_col_names <- colnames(s_resp)
+    cur_qname <- q_meta$questionName
+    q_cols <- all_col_names[grepl(paste0("^", cur_qname, "_."), all_col_names) | all_col_names == "Q4"]
+    q_resp <- select(s_resp, "ResponseID", q_cols)
     
-    # question types that have _ as heading - ie sub components
-    # sbs is side by side matrix type
-    qsub <- c("Matrix", "MC", "SBS")
-    
-    # TE only has _ subs IF it's of sub type form - there must be a better way to parse this...
-   if (q_meta$questionType$type %in% qsub | q_meta$questionType$selector == "FORM") {
-     q_resp <- select(s_resp, "ResponseID", starts_with(paste0(q_meta$questionName, "_")))
-   } else {
-     q_resp <- select(s_resp, "ResponseID", q_meta$questionName)
-   }
-    
-    #all_cols <- colnames(q_qquestion$responses)
     q_qquestion <- qquestion(q_meta, q_resp)
 
+    # if there are choices, and strip html is true clean them up
+    # this should be a small function and could also apply factor to choices by order here...
+    # this would be better using mutate_at
+    # remove this
+    # if ("choices" %in% names(q_qquestion) ){
+    #   if (strip.html) {
+    #     q_qquestion$choices <- q_qquestion$choices %>% 
+    #       mutate(text = strip_html(text),
+    #              desc = strip_html(desc))
+    #   }
+    # }
     ## Add qquestion to list of qquestions
     s_qquestions[[qid]] <- q_qquestion
   }
@@ -77,13 +80,16 @@ qsurvey <- function(id_or_name,
   ## Generate question list from qquestion objects
   s_question_list <- lapply(s_qquestions,
                             function(q) { return(q$meta) })
+  # if the user has factors set to true - here you get many warnings
   s_question_list <- bind_rows(s_question_list)
   s_question_list <- auto_reformat(s_question_list, 
-                                   strip.html = strip.html)
+                                   strip.html = clean_html)
 
   ## Parse survey "flow"
   s_flow <- nested_list_to_df(s_meta$flow)
-  s_flow <- auto_reformat(s_flow, "b")
+  # wtf does this do? 
+  # this function is way way way too big and does too many things
+  s_flow <- auto_reformat(s_flow, prefix = "b")
   s_flow <- cbind(s_flow, desc = NA)
   names(s_flow)[names(s_flow) == "id"] <- "bid" ## Change block 'id' to 'bid'
   
@@ -112,7 +118,7 @@ qsurvey <- function(id_or_name,
   
   s_blocks <- auto_reformat(s_blocks, 
                             reorder.cols = FALSE, 
-                            strip.html = strip_html)
+                            strip.html = strip.html)
     
   ## Generate list of respondents
   s_respondent_cols <- names(s_resp)[c(1:11)]
@@ -133,8 +139,7 @@ qsurvey <- function(id_or_name,
               end   = s_meta$expiration$endDate
           )
       ),
-      questionList = auto_reformat(s_question_list, 
-                                   strip.html = strip_html), ## TODO:: why must this be done twice ??
+      questionList = s_question_list,
       questions    = s_qquestions, ## the choices and questions are not being cleaned
       respondents  = s_respondents,
       responses    = s_resp,
