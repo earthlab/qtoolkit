@@ -16,7 +16,7 @@
 #' @export
 
 qsurvey <- function(id_or_name,
-                    strip_html = TRUE,
+                    strip.html = TRUE,
                     include.raw = FALSE) {
 
   assert_that(is.string(id_or_name))
@@ -79,7 +79,7 @@ qsurvey <- function(id_or_name,
                             function(q) { return(q$meta) })
   s_question_list <- bind_rows(s_question_list)
   s_question_list <- auto_reformat(s_question_list, 
-                                   strip.html = strip_html)
+                                   strip.html = strip.html)
 
   ## Parse survey "flow"
   s_flow <- nested_list_to_df(s_meta$flow)

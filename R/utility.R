@@ -73,35 +73,35 @@ auto_reformat <- function(df,
 
   ## Map of previous list names to what we want them renamed to
   rename_map <- list(
-      ## For (Sub)Questions
-      "questionType.type"             = "type",
-      "questionType.selector"         = "selector",
-      "questionType.subSelector"      = "subselector",
-      "questionText"                  = "text",
-      "questionLabel"                 = "label",
-      "validation.doesForceResponse"  = "required",
-      "questionName"                  = "name",
-      "order"                         = "order",
+      ## For (Sub)Questions - changing the name to distinguish between questions and choices
+      "questionType.type"             = "quest_type",
+      "questionType.selector"         = "quest_selector",
+      "questionType.subSelector"      = "quest_subselector",
+      "questionText"                  = "quest_text",
+      "questionLabel"                 = "quest_label",
+      "validation.doesForceResponse"  = "quest_required",
+      "questionName"                  = "quest_name",
+      "order"                         = "quest_order",
 
       ## For Choices
-      "description"                   = "desc",
-      "choiceText"                    = "text",
-      "imageDescription"              = "image_desc",
-      "variableName"                  = "var_name",
+      "description"                   = "choice_desc",
+      "choiceText"                    = "choice_text",
+      "imageDescription"              = "choice_image_desc",
+      "variableName"                  = "choice_var_name",
 
       ## For Blocks
       "questionId"                    = "qid"
   )
 
   ## List of the ideal order of columns
-  reorder_cols <- c("qid", "name", "order","text", "type", "selector",
-                    "subselector", "required")
+  reorder_cols <- c("qid", "quest_name", "quest_order","quest_text", "quest_type", "quest_selector",
+                    "quest_subselector", "quest_required")
 
   ## Rows to be ordered by
   reorder_rows_cols <- c("bid", "b_order", "order", "qid")
 
   ## Cols to strip HTML if they exist
-  strip_html_cols <- c("name", "text")
+  strip_html_cols <- c("quest_name", "quest_text")
 
   ## Add optional prefix before column names
   if (prefix != "") {
