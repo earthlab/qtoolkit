@@ -5,9 +5,11 @@ library(qtoolkit)
 # https://github.com/sckott/analogsea/issues/32
 # note currently i need to just load the pipe and also stringsasfactors as false
 library(dplyr)
-## Connect to Qualtrics API
-qapi_connect()
 
+
+## ----eval=FALSE----------------------------------------------------------
+#  ## Connect to Qualtrics API
+#  qapi_connect()
 
 ## ----view-survey-list----------------------------------------------------
 # get a list of all surveys connected to your account / api token
@@ -29,13 +31,13 @@ my_survey_ob$questionList
 
 ## ------------------------------------------------------------------------
 my_survey_ob <- qsurvey(survey_id,
-                        strip_html = FALSE)
+                        clean_html = FALSE)
 # view all questions
 my_survey_ob$questionList
 
 ## ------------------------------------------------------------------------
 my_survey_ob <- qsurvey(survey_id,
-                        strip_html = TRUE)
+                        clean_html = TRUE)
 # view all questions
 all_questions <- my_survey_ob$questionList
 all_questions
@@ -46,26 +48,55 @@ q4 <- my_survey_ob$questions$QID4
 str(q4)
 
 ## ------------------------------------------------------------------------
-# it would be nice if this took the choices and made them factors
-# should this be a default for a likert scale?
+# get responses and question information for qid71.
+my_survey_ob$questions$QID4$choices
+
+## ------------------------------------------------------------------------
+# get responses and question information for qid71.
+my_survey_ob$questions$QID4$responses
+
+
+## ------------------------------------------------------------------------
+# get responses and question information for qid71.
+my_survey_ob$questions$QID4$subquestions
+
+## ------------------------------------------------------------------------
+# here, we just grab a df that has the data stacked in a way that is easily plottable
 question_responses <- get_question_resp(q4)
 head(question_responses)
 
 ## ------------------------------------------------------------------------
 library(ggplot2)
+# it could be nice to calculate a percentage to with some function or argument 
 question_responses %>%
-  group_by(question, qchoice) %>%
+  group_by(quest_text, choice_text) %>%
   count() %>%
-  ggplot(aes(x = qchoice, y = n)) +
-  geom_bar(stat = "identity")
+  ggplot(aes(x = choice_text, y = n)) +
+  geom_bar(stat = "identity") +
+  labs(title = "How Often You Use a Tool",
+       x = "Frequency of Use",
+       y = "Count")
 
 
 ## ------------------------------------------------------------------------
+# it could be nice to calculate a percentage to with some function or argument 
 question_responses %>%
-  group_by(question, qchoice) %>%
+  group_by(quest_text, choice_text) %>%
   count() %>%
-  ggplot(aes(x = qchoice, y = n)) +
+  ggplot(aes(x = choice_text, y = n)) +
   geom_bar(stat = "identity") +
-  facet_wrap(~question, , ncol = 2)
+  facet_wrap(~quest_text, ncol = 2) +
+  labs(title = "How Often You Use a Tool",
+       x = "Frequency of Use",
+       y = "Count")
 
+
+## ------------------------------------------------------------------------
+# it would be nice if this took the choices and made them factors
+# should this be a default for a likert scale?
+question_responses <- get_question_resp(q4, 
+                                        quest_wrap = NULL, 
+                                        choice_wrap = 8, 
+                                        choice_factor = TRUE)
+head(question_responses)
 

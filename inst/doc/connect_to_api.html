@@ -12,7 +12,7 @@
 
 <meta name="author" content="Leah Wasser &amp; Davey Levin" />
 
-<meta name="date" content="2018-03-15" />
+<meta name="date" content="2018-03-21" />
 
 <title>QToolkit 101: Get Survey Data</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">QToolkit 101: Get Survey Data</h1>
 <h4 class="author"><em>Leah Wasser &amp; Davey Levin</em></h4>
-<h4 class="date"><em>2018-03-15</em></h4>
+<h4 class="date"><em>2018-03-21</em></h4>
 
 
 
@@ -91,11 +91,10 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>where <code>QAPI_ORG_ID</code> is your <code>org_id</code> and <code>QAPI_API_KEY</code> is your <code>api_key</code>.</p>
 <p>Once your credentials are stored in the <code>.Rprofile</code>, you can call <code>qapi_connect()</code> with no parameters as the script will load the credentials from <code>~/.Rprofile</code>.</p>
 <p>HINT: TO find your .Rprofile file. Open terminal (on a mac) or gitbash on a pc. and cd to your home directory.</p>
-<pre class="shell"><code># cd to your home directory
-cd .
-# open r profile in your favorite text editor. below we use vim
-vim .Rprofile
-</code></pre>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="co"># cd to your home directory</span>
+<span class="bu">cd</span> .
+<span class="co"># open r profile in your favorite text editor. below we use vim</span>
+<span class="ex">vim</span> .Rprofile</code></pre></div>
 </div>
 <div id="add-an-auth-file-to-your-r-working-directory" class="section level3">
 <h3>Add an Auth File To Your <code>R</code> Working Directory</h3>
