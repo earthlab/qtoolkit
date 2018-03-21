@@ -107,6 +107,7 @@ auto_reformat <- function(df,
                        "choice_desc", "choice_text", 
                        "name", "text", "desc")
 
+  #### begin prefix = true section
   ## Add optional prefix before column names
   if (prefix != "") {
 
@@ -124,7 +125,7 @@ auto_reformat <- function(df,
     rename_map <- lapply(rename_map,
                          function(i) { prefix_fn(i, prefix) })
 
-    reorder_cols<- sapply(reorder_cols,
+    reorder_cols <- sapply(reorder_cols,
                           function(j) { prefix_fn(j, prefix) },
                           USE.NAMES = FALSE)
 
@@ -137,6 +138,8 @@ auto_reformat <- function(df,
                                 USE.NAMES = FALSE)
   }
 
+  #### end prefix = true section
+  
   ## Rename the colnames
   if (rename.cols) {
     all_renames <- names(rename_map)
@@ -161,6 +164,10 @@ auto_reformat <- function(df,
   }
 
   ## Reorder the rows based upon columns
+  # this is messed up - fixing as it's using indexing that fails
+  # plus it's way complicated
+  # i think this may try to order the df by "order" but... it's doing crazy things
+  
   if (reorder.rows) {
     reorder_rows <- na.omit(match(reorder_rows_cols, renamed_cols))
     reorder_rows_list <- lapply(reorder_rows, function(r) { return(df[,r]) })

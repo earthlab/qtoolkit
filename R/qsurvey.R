@@ -9,7 +9,7 @@
 #' @importFrom dplyr starts_with
 #'
 #' @param id_or_name Survey ID or name
-#' @param strip.html Auto-strip HTML from question names & choices
+#' @param clean_html Auto-strip HTML from question names & choices
 #' @param include.raw Include raw JSON in survey object
 #'
 #' @return Qualtrics survey object
@@ -49,30 +49,17 @@ qsurvey <- function(id_or_name,
     q_meta$questionOrder <- as.integer(i)
     q_meta$questionID <- qid
     
-    # clean up choices here?
-
     ## Select the responses (and ResponseID) for only this question,
     ## pass that to create new qquestion object along with metadata
    
     # better approach - regex baby! NOTE - this will STILL FAIL for the user if there are duplicate col names
     all_col_names <- colnames(s_resp)
     cur_qname <- q_meta$questionName
-    q_cols <- all_col_names[grepl(paste0("^", cur_qname, "_."), all_col_names) | all_col_names == "Q4"]
+    q_cols <- all_col_names[grepl(paste0("^", cur_qname, "_."), all_col_names) | all_col_names == cur_qname]
     q_resp <- select(s_resp, "ResponseID", q_cols)
     
     q_qquestion <- qquestion(q_meta, q_resp)
 
-    # if there are choices, and strip html is true clean them up
-    # this should be a small function and could also apply factor to choices by order here...
-    # this would be better using mutate_at
-    # remove this
-    # if ("choices" %in% names(q_qquestion) ){
-    #   if (strip.html) {
-    #     q_qquestion$choices <- q_qquestion$choices %>% 
-    #       mutate(text = strip_html(text),
-    #              desc = strip_html(desc))
-    #   }
-    # }
     ## Add qquestion to list of qquestions
     s_qquestions[[qid]] <- q_qquestion
   }
@@ -86,10 +73,11 @@ qsurvey <- function(id_or_name,
                                    strip.html = clean_html)
 
   ## Parse survey "flow"
+  # where are the block names? and how do questions link to blocks?
   s_flow <- nested_list_to_df(s_meta$flow)
   # wtf does this do? 
   # this function is way way way too big and does too many things
-  s_flow <- auto_reformat(s_flow, prefix = "b")
+  s_flow <- auto_reformat(s_flow, prefix = "b", reorder.rows= FALSE)
   s_flow <- cbind(s_flow, desc = NA)
   names(s_flow)[names(s_flow) == "id"] <- "bid" ## Change block 'id' to 'bid'
   
@@ -118,7 +106,7 @@ qsurvey <- function(id_or_name,
   
   s_blocks <- auto_reformat(s_blocks, 
                             reorder.cols = FALSE, 
-                            strip.html = strip.html)
+                            strip.html = clean_html)
     
   ## Generate list of respondents
   s_respondent_cols <- names(s_resp)[c(1:11)]

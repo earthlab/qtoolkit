@@ -34,6 +34,7 @@ qquestion <- function(q_meta, q_resp) {
   ## Call a function based upon question type to add more parameters
   q_fn <- paste0("qquestion.", qq$meta$type)
   
+  # this populates choices and subquestions FOR the correct question type (matrix, mc)
   if (exists(q_fn)) {
     q_extra <- get(q_fn)(q_meta, q_resp)
     qq <- c(qq, q_extra)
@@ -47,11 +48,11 @@ qquestion <- function(q_meta, q_resp) {
 
 qquestion.MC <- function(q_meta, q_resp) {
 
-  choices_t <- nested_list_to_df(q_meta$choices)
+  choices <- nested_list_to_df(q_meta$choices)
 
   qq_extra <- list(
     # this is almost working but for some reason it's missing SOME rows
-      choices <- auto_reformat(choices_t,
+      choices <- auto_reformat(choices,
                                reorder.rows = FALSE,
                                strip.html = TRUE)
   )
@@ -59,14 +60,24 @@ qquestion.MC <- function(q_meta, q_resp) {
   return(qq_extra)
 }
 
+# the problem here is that strip_html is occuring in too many places
+# thus it's very difficult to determine whether it's being implemented correctly
+# throughout the survey 
+# auto reformat really needs to be broken down into many sub functions and cleaned up
+# so it's easier to manage all of this
+
 qquestion.Matrix <- function(q_meta, q_resp) {
 
   choices <- nested_list_to_df(q_meta$choices)
   subquestions <- nested_list_to_df(q_meta$subQuestions)
   
   qq_extra <- list(
-    choices = auto_reformat(choices),
-    subquestions = auto_reformat(subquestions)
+    choices = auto_reformat(choices,
+                            reorder.rows = FALSE,
+                            strip.html = TRUE),
+    subquestions = auto_reformat(subquestions,
+                                 reorder.rows = FALSE,
+                                 strip.html = TRUE)
   )
   return(qq_extra)
   
