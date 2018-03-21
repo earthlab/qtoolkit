@@ -23,6 +23,10 @@ library(qtoolkit)
 # https://github.com/sckott/analogsea/issues/32
 # note currently i need to just load the pipe and also stringsasfactors as false
 library(dplyr)
+
+```
+
+```{r eval = FALSE}
 ## Connect to Qualtrics API
 qapi_connect()
 ```
@@ -95,17 +99,16 @@ string_html to FALSE.
 
 ```{r}
 my_survey_ob <- qsurvey(survey_id,
-                        strip_html = FALSE)
+                        clean_html = FALSE)
 # view all questions
 my_survey_ob$questionList
 ```
 
 Notice now your questions contain any html formatting used to render your questions!
 
-
 ```{r}
 my_survey_ob <- qsurvey(survey_id,
-                        strip_html = TRUE)
+                        clean_html = TRUE)
 # view all questions
 all_questions <- my_survey_ob$questionList
 all_questions
@@ -127,8 +130,23 @@ str(q4)
 ```
 
 ```{r}
-# it would be nice if this took the choices and made them factors
-# should this be a default for a likert scale?
+# get responses and question information for qid71.
+my_survey_ob$questions$QID4$choices
+```
+
+```{r}
+# get responses and question information for qid71.
+my_survey_ob$questions$QID4$responses
+
+```
+
+```{r}
+# get responses and question information for qid71.
+my_survey_ob$questions$QID4$subquestions
+```
+
+```{r}
+# here, we just grab a df that has the data stacked in a way that is easily plottable
 question_responses <- get_question_resp(q4)
 head(question_responses)
 ```
@@ -138,25 +156,82 @@ responses
 
 ```{r}
 library(ggplot2)
+# it could be nice to calculate a percentage to with some function or argument 
 question_responses %>%
-  group_by(question, qchoice) %>%
+  group_by(quest_text, choice_text) %>%
   count() %>%
-  ggplot(aes(x = qchoice, y = n)) +
-  geom_bar(stat = "identity")
+  ggplot(aes(x = choice_text, y = n)) +
+  geom_bar(stat = "identity") +
+  labs(title = "How Often You Use a Tool",
+       x = "Frequency of Use",
+       y = "Count")
 
 ```
 
-TO do
-
-1. make sure strip_html works on choices too
-2. apply factors as an option ?? or atleast order the choices by order... 
+Now create a plot with facets for each sub question in your question matrix. 
 
 ```{r}
+# it could be nice to calculate a percentage to with some function or argument 
 question_responses %>%
-  group_by(question, qchoice) %>%
+  group_by(quest_text, choice_text) %>%
   count() %>%
-  ggplot(aes(x = qchoice, y = n)) +
+  ggplot(aes(x = choice_text, y = n)) +
   geom_bar(stat = "identity") +
-  facet_wrap(~question, , ncol = 2)
+  facet_wrap(~quest_text, ncol = 2) +
+  labs(title = "How Often You Use a Tool",
+       x = "Frequency of Use",
+       y = "Count")
 
+```
+
+Finally you may want to clean up the plot. Issues with this plot include:
+
+1. it's hard to read text on the x axis as the text is too long and 
+2. the choices are not in the correct order
+
+You can use the choice_wrap and choice_factor to fix this easily.
+
+```{r}
+# it would be nice if this took the choices and made them factors
+# should this be a default for a likert scale?
+question_responses <- get_question_resp(q4, 
+                                        quest_wrap = NULL, 
+                                        choice_wrap = 8, 
+                                        choice_factor = TRUE)
+head(question_responses)
+
+question_responses %>%
+  group_by(quest_text, choice_text) %>%
+  count() %>%
+  ggplot(aes(x = choice_text, y = n)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~quest_text, ncol = 2) +
+  labs(title = "How Often You Use a Tool",
+       x = "Frequency of Use",
+       y = "Count")
+```
+
+The above looks a lot nicer. However, now we may want to flip the order of our 
+likert scale for plotting. You can do that using the argument `choice_rev` 
+which accepts a boolean TRUE or FALSE.
+
+```{r}
+# it would be nice if this took the choices and made them factors
+# should this be a default for a likert scale?
+question_responses <- get_question_resp(q4, 
+                                        quest_wrap = NULL, 
+                                        choice_wrap = 8, 
+                                        choice_factor = TRUE,
+                                        choice_rev = TRUE)
+head(question_responses)
+
+question_responses %>%
+  group_by(quest_text, choice_text) %>%
+  count() %>%
+  ggplot(aes(x = choice_text, y = n)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~quest_text, ncol = 2) +
+  labs(title = "How Often You Use a Tool",
+       x = "Frequency of Use",
+       y = "Count")
 ```

@@ -5,7 +5,9 @@ library(qtoolkit)
 # https://github.com/sckott/analogsea/issues/32
 # note currently i need to just load the pipe and also stringsasfactors as false
 library(dplyr)
-## Connect to Qualtrics API
-qapi_connect()
 
+
+## ----eval=FALSE----------------------------------------------------------
+#  ## Connect to Qualtrics API
+#  qapi_connect()
 
