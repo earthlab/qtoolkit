@@ -4,13 +4,22 @@
 \alias{get_question_resp}
 \title{get_data}
 \usage{
-get_question_resp(quest_obj)
+get_question_resp(quest_obj, quest_wrap = NULL, choice_wrap = NULL,
+  choice_factor = FALSE, choice_rev = FALSE)
 }
 \arguments{
 \item{quest_obj}{the object within the qsurvey object that contains all relevant information to the question including choicses and subquestions IF those are relevant}
+
+\item{quest_wrap}{an integer value defining the number of characters at which you want to specify a line break for each question at for prettier plotting. default = NULL which means no wrap}
+
+\item{choice_wrap}{an integer value defining the number of characters at which you want to specify a line break for each CHOICE at for prettier plotting. default = NULL which means no wrap}
+
+\item{choice_factor}{boolean set to TRUE if you want choices to be turned into a factor and ordered by the order provided in qualtrics (this is the order that you provided to the user in the survey)}
+
+\item{choice_rev}{boolean set to TRUE if you want to reverse the order of choices}
 }
 \value{
-Nice data.frame ready for plotting. yeaaassss
+Nice data.frame ready for pretty plotting.
 }
 \description{
 Cleaned data.frame all ready for plotting
