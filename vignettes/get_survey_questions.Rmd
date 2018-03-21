@@ -1,0 +1,237 @@
+---
+title: "QToolkit 101: Get Survey Data"
+author: "Leah Wasser"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{QToolkit 101: Get Survey Data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Getting Survey Data From Qualtrics
+
+To begin accessing qualtrics data through `qtoolkit`, you need to have your API
+key setup. The example below assumes that you
+have your key setup in your `.Rprofile` file OR in an `.auth` file in your working directory.
+Refer to the API connect vignette for more details on that!
+
+```{r connect, message=FALSE}
+options(stringsAsFactors = FALSE)
+library(qtoolkit)
+# still working on only importing the pipe element in the package.
+# https://github.com/sckott/analogsea/issues/32
+# note currently i need to just load the pipe and also stringsasfactors as false
+library(dplyr)
+
+```
+
+```{r eval = FALSE}
+## Connect to Qualtrics API
+qapi_connect()
+```
+
+Once you have connected to the api, you can quickly view all of the surveys that
+you have access to through that API key. These are the same surveys you would see
+when you login to your Qualtrics account.
+
+```{r view-survey-list}
+# get a list of all surveys connected to your account / api token
+all_surveys <- list_surveys()
+head(all_surveys)
+
+```
+
+The first column in the output data.frame from the `list_surveys()` function is
+the survey ID for each survey. You can use that ID to grab the survey that you'd
+like.
+
+Note - there is also some functionality built in to grab that by name but that
+is still in beta. The output of `qsurvey()` is a `qsurvey` object. this object
+contains both the question and response data and metadata all together in one
+happy place.
+
+```{r get-survey}
+# define survey id variable, then get survey object
+survey_id <- "SV_1SUpa4C4UGkZnWB"
+# currently there are some issues with factors that i need to fix via hard code
+# if strings as factors isn't false, then you get warnings as R coerces to char
+my_survey_ob <- qsurvey(survey_id)
+```
+
+Be forewarned that this will take a minute to populate as it needs to:
+
+1. Hit the qualtrics API,
+2. access the survey and
+3. populate the object with all of the data.
+
+IMPORTANT: you must have internet access for this step to work properly as it
+is hitting another server to get your survey data!
+
+Once this step is successful, the real fun can begin.
+
+## View Survey Questions
+
+Next, let's explore the survey data information returned from qtoolkit.
+First, check out all of the questions in the survey. The returned object here
+contains the question id, name and order. Pay close attention to the `qid` which is
+DIFFERENT from the name. The name is what you see in Qualtrics. The problem with
+the name is that you can have 2 questions with the same name in Qualtrics. You
+can manually edit the name in qualtrics.
+
+This is problematic.
+
+Thus, when you get a question in `qtoolkit`, you will use the `qid` NOT the name
+that you see (and can change) in Qualtrics.
+
+To view a nice data.frame of all questions available in your survey, you can access
+it via the `qsurvey` object as follows:
+
+```{r view-all-questions}
+# view all questions
+my_survey_ob$questionList
+
+```
+
+Note that here, qtoolkit by default cleans up any manually formatting in your questions.
+Manually formatting will appear as html. If you want to keep the html, simply set 
+string_html to FALSE. 
+
+```{r}
+my_survey_ob <- qsurvey(survey_id,
+                        clean_html = FALSE)
+# view all questions
+my_survey_ob$questionList
+```
+
+Notice now your questions contain any html formatting used to render your questions!
+
+```{r}
+my_survey_ob <- qsurvey(survey_id,
+                        clean_html = TRUE)
+# view all questions
+all_questions <- my_survey_ob$questionList
+all_questions
+```
+
+## Qsurvey Object Structure
+
+Let's first break down how the `qsurvey` object is organized. Each question can
+be found in the `questions$qidhere` slot of the object. AGAIN note that the
+qid is the UNIQUE ID that qualtrics provides each question. The name is something
+that you can change so don't use that!
+
+If you want to get all of the data for a question with id `QID71`, you can use:
+
+```{r}
+# get responses and question information for qid71.
+q4 <- my_survey_ob$questions$QID4
+str(q4)
+```
+
+```{r}
+# get responses and question information for qid71.
+my_survey_ob$questions$QID4$choices
+```
+
+```{r}
+# get responses and question information for qid71.
+my_survey_ob$questions$QID4$responses
+
+```
+
+```{r}
+# get responses and question information for qid71.
+my_survey_ob$questions$QID4$subquestions
+```
+
+```{r}
+# here, we just grab a df that has the data stacked in a way that is easily plottable
+question_responses <- get_question_resp(q4)
+head(question_responses)
+```
+
+Now you can plot! Let's pretend we just want a plain old bar plot of
+responses
+
+```{r}
+library(ggplot2)
+# it could be nice to calculate a percentage to with some function or argument 
+question_responses %>%
+  group_by(quest_text, choice_text) %>%
+  count() %>%
+  ggplot(aes(x = choice_text, y = n)) +
+  geom_bar(stat = "identity") +
+  labs(title = "How Often You Use a Tool",
+       x = "Frequency of Use",
+       y = "Count")
+
+```
+
+Now create a plot with facets for each sub question in your question matrix. 
+
+```{r}
+# it could be nice to calculate a percentage to with some function or argument 
+question_responses %>%
+  group_by(quest_text, choice_text) %>%
+  count() %>%
+  ggplot(aes(x = choice_text, y = n)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~quest_text, ncol = 2) +
+  labs(title = "How Often You Use a Tool",
+       x = "Frequency of Use",
+       y = "Count")
+
+```
+
+Finally you may want to clean up the plot. Issues with this plot include:
+
+1. it's hard to read text on the x axis as the text is too long and 
+2. the choices are not in the correct order
+
+You can use the choice_wrap and choice_factor to fix this easily.
+
+```{r}
+# it would be nice if this took the choices and made them factors
+# should this be a default for a likert scale?
+question_responses <- get_question_resp(q4, 
+                                        quest_wrap = NULL, 
+                                        choice_wrap = 8, 
+                                        choice_factor = TRUE)
+head(question_responses)
+
+question_responses %>%
+  group_by(quest_text, choice_text) %>%
+  count() %>%
+  ggplot(aes(x = choice_text, y = n)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~quest_text, ncol = 2) +
+  labs(title = "How Often You Use a Tool",
+       x = "Frequency of Use",
+       y = "Count")
+```
+
+The above looks a lot nicer. However, now we may want to flip the order of our 
+likert scale for plotting. You can do that using the argument `choice_rev` 
+which accepts a boolean TRUE or FALSE.
+
+```{r}
+# it would be nice if this took the choices and made them factors
+# should this be a default for a likert scale?
+question_responses <- get_question_resp(q4, 
+                                        quest_wrap = NULL, 
+                                        choice_wrap = 8, 
+                                        choice_factor = TRUE,
+                                        choice_rev = TRUE)
+head(question_responses)
+
+question_responses %>%
+  group_by(quest_text, choice_text) %>%
+  count() %>%
+  ggplot(aes(x = choice_text, y = n)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~quest_text, ncol = 2) +
+  labs(title = "How Often You Use a Tool",
+       x = "Frequency of Use",
+       y = "Count")
+```

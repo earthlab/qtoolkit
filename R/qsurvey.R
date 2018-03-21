@@ -9,14 +9,14 @@
 #' @importFrom dplyr starts_with
 #'
 #' @param id_or_name Survey ID or name
-#' @param strip.html Auto-strip HTML from question names & choices
+#' @param clean_html Auto-strip HTML from question names & choices
 #' @param include.raw Include raw JSON in survey object
 #'
 #' @return Qualtrics survey object
 #' @export
 
 qsurvey <- function(id_or_name,
-                    strip.html = TRUE,
+                    clean_html = TRUE,
                     include.raw = FALSE) {
 
   assert_that(is.string(id_or_name))
@@ -48,29 +48,17 @@ qsurvey <- function(id_or_name,
     ## Add qid and order to question metadata
     q_meta$questionOrder <- as.integer(i)
     q_meta$questionID <- qid
-
+    
     ## Select the responses (and ResponseID) for only this question,
     ## pass that to create new qquestion object along with metadata
    
-    # if it's a matrix question, grab questions that have _
-    # if not, then grab questions that equal the question name
-    # note this is problematic for duplicates
+    # better approach - regex baby! NOTE - this will STILL FAIL for the user if there are duplicate col names
+    all_col_names <- colnames(s_resp)
+    cur_qname <- q_meta$questionName
+    q_cols <- all_col_names[grepl(paste0("^", cur_qname, "_."), all_col_names) | all_col_names == cur_qname]
+    q_resp <- select(s_resp, "ResponseID", q_cols)
     
-    # question types that have _ as heading - ie sub components
-    qsub <- c("Matrix", "MC", "TE")
-    
-   if (q_meta$questionType$type %in% qsub) {
-     q_resp <- select(s_resp, "ResponseID", starts_with(paste0(q_meta$questionName, "_")))
-   } else {
-     q_resp <- select(s_resp, "ResponseID", q_meta$questionName)
-   }
-    
-    #all_cols <- colnames(q_qquestion$responses)
     q_qquestion <- qquestion(q_meta, q_resp)
-    # because the first column is the ID and we want to 
-    # this will return both q4 and q42
-    # this should explicetely tell it what columns to grab as associate with the qid avoiding duplicate issues
-    #q_resp <- select(s_resp, "ResponseID", (all_cols[2:length(all_cols)]))
 
     ## Add qquestion to list of qquestions
     s_qquestions[[qid]] <- q_qquestion
@@ -79,12 +67,17 @@ qsurvey <- function(id_or_name,
   ## Generate question list from qquestion objects
   s_question_list <- lapply(s_qquestions,
                             function(q) { return(q$meta) })
+  # if the user has factors set to true - here you get many warnings
   s_question_list <- bind_rows(s_question_list)
-  s_question_list <- auto_reformat(s_question_list)
+  s_question_list <- auto_reformat(s_question_list, 
+                                   strip.html = clean_html)
 
   ## Parse survey "flow"
+  # where are the block names? and how do questions link to blocks?
   s_flow <- nested_list_to_df(s_meta$flow)
-  s_flow <- auto_reformat(s_flow, "b")
+  # wtf does this do? 
+  # this function is way way way too big and does too many things
+  s_flow <- auto_reformat(s_flow, prefix = "b", reorder.rows= FALSE)
   s_flow <- cbind(s_flow, desc = NA)
   names(s_flow)[names(s_flow) == "id"] <- "bid" ## Change block 'id' to 'bid'
   
@@ -110,8 +103,10 @@ qsurvey <- function(id_or_name,
 
     s_blocks <- bind_rows(s_blocks, b)
   }
-
-  s_blocks <- auto_reformat(s_blocks, reorder.cols = FALSE)
+  
+  s_blocks <- auto_reformat(s_blocks, 
+                            reorder.cols = FALSE, 
+                            strip.html = clean_html)
     
   ## Generate list of respondents
   s_respondent_cols <- names(s_resp)[c(1:11)]
@@ -132,8 +127,8 @@ qsurvey <- function(id_or_name,
               end   = s_meta$expiration$endDate
           )
       ),
-      questionList = auto_reformat(s_question_list), ## TODO:: why must this be done twice ??
-      questions    = s_qquestions,
+      questionList = s_question_list,
+      questions    = s_qquestions, ## the choices and questions are not being cleaned
       respondents  = s_respondents,
       responses    = s_resp,
       flow         = s_flow,
@@ -142,6 +137,7 @@ qsurvey <- function(id_or_name,
 
   ## Check for duplicate questions
   check_duplicate_questions(survey)
+  
 
   ## Add raw JSON if specified
   if (include.raw) {
