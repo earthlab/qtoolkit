@@ -75,7 +75,6 @@ qsurvey <- function(id_or_name,
   ## Parse survey "flow"
   # where are the block names? and how do questions link to blocks?
   s_flow <- nested_list_to_df(s_meta$flow)
-  # wtf does this do? 
   # this function is way way way too big and does too many things
   s_flow <- auto_reformat(s_flow, prefix = "b", reorder.rows= FALSE)
   s_flow <- cbind(s_flow, desc = NA)
@@ -90,9 +89,19 @@ qsurvey <- function(id_or_name,
   for (j in seq_along(bids)) {
     bid <- bids[[j]]
     b_meta <- bs[[bid]]
-
-    b <- nested_list_to_df(b_meta$elements)
-    b <- cbind(bid = bid, b)
+    
+    # this fails if there is an empty block
+    # test if the block elements is empty
+    if (!(length(b_meta$elements) == 0)) {
+      b <- nested_list_to_df(b_meta$elements)
+      b <- cbind(bid = bid, b)
+    } else {
+     b <- data.frame(bid = bid, 
+                     type = "Empty Block",
+                     #description = b_meta$description,
+                     note = "This block is empty in your survey. You may want to remove it from the survey flow.")
+    }
+    
 
     ## Add the block description to the survey flow DF row with bid
     # but first, remove block rows where bid == NA
