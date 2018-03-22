@@ -5,9 +5,9 @@ library(qtoolkit)
 # https://github.com/sckott/analogsea/issues/32
 # note currently i need to just load the pipe and also stringsasfactors as false
 library(dplyr)
+library(tidyr)
 
-
-## ----eval=FALSE----------------------------------------------------------
+## ----eval = FALSE--------------------------------------------------------
 #  ## Connect to Qualtrics API
 #  qapi_connect()
 
@@ -99,4 +99,34 @@ question_responses <- get_question_resp(q4,
                                         choice_wrap = 8, 
                                         choice_factor = TRUE)
 head(question_responses)
+
+question_responses %>%
+  group_by(quest_text, choice_text) %>%
+  count() %>%
+  ggplot(aes(x = choice_text, y = n)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~quest_text, ncol = 2) +
+  labs(title = "How Often You Use a Tool",
+       x = "Frequency of Use",
+       y = "Count")
+
+## ------------------------------------------------------------------------
+# it would be nice if this took the choices and made them factors
+# should this be a default for a likert scale?
+question_responses <- get_question_resp(q4, 
+                                        quest_wrap = NULL, 
+                                        choice_wrap = 8, 
+                                        choice_factor = TRUE,
+                                        choice_rev = TRUE)
+head(question_responses)
+
+question_responses %>%
+  group_by(quest_text, choice_text) %>%
+  count() %>%
+  ggplot(aes(x = choice_text, y = n)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~quest_text, ncol = 2) +
+  labs(title = "How Often You Use a Tool",
+       x = "Frequency of Use",
+       y = "Count")
 
