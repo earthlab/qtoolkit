@@ -114,11 +114,19 @@ get_question_resp <- function(quest_obj,
                          choice_wrap, 
                          choice_rev = choice_rev,
                          choice_factor = choice_factor)
-  
+  # if this is a multiple choice quqestion this fails because you get a 1 for each option thus you cant join on response
+  # this function is becoming very long. might be better to try to consolidate just a bit into sub functions
+  # note does this work with both types of MC questions?
+  if (quest_obj$meta$type == "MC") {
+    fin_resp <-  fin_resp %>%
+      separate(qnum, sep = "_", c("quest", "recode")) %>% 
+      mutate(recode = as.integer(recode)) %>% 
+      left_join(choices, by = c("recode" = "recode"))
+  } else {
   fin_resp <- fin_resp %>%
     left_join(choices, by = c("response" = "recode"))
   }
-
+}
   if (!is.null(quest_obj$subquestions)){
   # if there are subquestions
   subq <- get_subq(quest_obj$subquestions)

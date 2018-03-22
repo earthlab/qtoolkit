@@ -51,8 +51,8 @@ qquestion.MC <- function(q_meta, q_resp) {
   choices <- nested_list_to_df(q_meta$choices)
 
   qq_extra <- list(
-    # this is almost working but for some reason it's missing SOME rows
-      choices <- auto_reformat(choices,
+    # this should be an equal sign to create a list... i think
+      choices = auto_reformat(choices,
                                reorder.rows = FALSE,
                                strip.html = TRUE)
   )

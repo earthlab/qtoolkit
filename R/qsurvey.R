@@ -52,12 +52,14 @@ qsurvey <- function(id_or_name,
     ## Select the responses (and ResponseID) for only this question,
     ## pass that to create new qquestion object along with metadata
    
-    # better approach - regex baby! NOTE - this will STILL FAIL for the user if there are duplicate col names
+    # better approach grab a list of columns using regex. NOTE - this will STILL FAIL for the user if there are duplicate col names
     all_col_names <- colnames(s_resp)
     cur_qname <- q_meta$questionName
+    # get just the cols that begin with the question number of are the question number
     q_cols <- all_col_names[grepl(paste0("^", cur_qname, "_."), all_col_names) | all_col_names == cur_qname]
     q_resp <- select(s_resp, "ResponseID", q_cols)
     
+    # i think for some reason it's not returning this using a "choices slot"
     q_qquestion <- qquestion(q_meta, q_resp)
 
     ## Add qquestion to list of qquestions
