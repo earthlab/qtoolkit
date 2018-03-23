@@ -4,12 +4,14 @@
 \alias{qquestion}
 \title{qquestion}
 \usage{
-qquestion(q_meta, q_resp)
+qquestion(q_meta, q_resp, clean_html)
 }
 \arguments{
 \item{q_meta}{Named list of question metadata}
 
 \item{q_resp}{DF of question responses}
+
+\item{clean_html}{BOOLEAN - determines whether to strip the html surrounding text or not}
 }
 \value{
 Qualtrics Survey Question object

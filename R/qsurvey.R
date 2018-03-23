@@ -32,7 +32,7 @@ qsurvey <- function(id_or_name,
   ## Get survey metadata and responses from Qualtrics API
   s_meta <- qapi_get_survey(survey_id)
   s_resp <- qapi_response_export(survey_id)
-  
+  all_col_names <- colnames(s_resp)
   ## Initialize and qquestions list
   s_qquestions <- list()
   
@@ -52,15 +52,22 @@ qsurvey <- function(id_or_name,
     ## Select the responses (and ResponseID) for only this question,
     ## pass that to create new qquestion object along with metadata
    
-    # better approach grab a list of columns using regex. NOTE - this will STILL FAIL for the user if there are duplicate col names
-    all_col_names <- colnames(s_resp)
+    # better approach use a list of columns using regex. NOTE - this will STILL FAIL for the user if there are duplicate col names
     cur_qname <- q_meta$questionName
     # get just the cols that begin with the question number of are the question number
-    q_cols <- all_col_names[grepl(paste0("^", cur_qname, "_."), all_col_names) | all_col_names == cur_qname]
+    # note that SBS matrices have a slightly more complex structure. They use . notation after the question rather than underscore
+    if (q_meta$questionType$type == "SBS") {
+      q_cols <- all_col_names[grepl(paste0("^", cur_qname, ".."), all_col_names) | all_col_names == cur_qname]
+    } else {
+      q_cols <- all_col_names[grepl(paste0("^", cur_qname, "_."), all_col_names) | all_col_names == cur_qname]
+    }
+    
     q_resp <- select(s_resp, "ResponseID", q_cols)
     
-    # i think for some reason it's not returning this using a "choices slot"
-    q_qquestion <- qquestion(q_meta, q_resp)
+    # This is where the quesiton object is created
+    # if it doesn't generate subquestions properly or choices it's likely due to 
+    # the question type not being addressed yet in the package
+    q_qquestion <- qquestion(q_meta, q_resp, clean_html)
 
     ## Add qquestion to list of qquestions
     s_qquestions[[qid]] <- q_qquestion
@@ -75,12 +82,12 @@ qsurvey <- function(id_or_name,
                                    strip.html = clean_html)
 
   ## Parse survey "flow"
-  # where are the block names? and how do questions link to blocks?
   s_flow <- nested_list_to_df(s_meta$flow)
   # this function is way way way too big and does too many things
   s_flow <- auto_reformat(s_flow, prefix = "b", reorder.rows= FALSE)
   s_flow <- cbind(s_flow, desc = NA)
-  names(s_flow)[names(s_flow) == "id"] <- "bid" ## Change block 'id' to 'bid'
+  # Change block 'id' to 'bid'
+  names(s_flow)[names(s_flow) == "id"] <- "bid" 
   
   ## Generate DF of survey blocks
   s_blocks <- data.frame()
