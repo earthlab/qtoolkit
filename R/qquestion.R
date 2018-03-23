@@ -40,7 +40,8 @@ qquestion <- function(q_meta, q_resp, clean_html) {
     q_extra <- get(q_fn)(q_meta, q_resp, clean_html)
     qq <- c(qq, q_extra)
   } else {
-    print("Warning: A function does not exist to handle this object type - please check the output data carefully")
+    print("Warning: A function does not exist to handle this object type but the data have been processed. Please check the output data carefully.")
+    print(q_fn)
   }
 
   ## Build and return class
@@ -73,7 +74,7 @@ qquestion.Matrix <- function(q_meta, q_resp, clean_html) {
   choices <- nested_list_to_df(q_meta$choices)
   subquestions <- nested_list_to_df(q_meta$subQuestions)
   
-  qq_extra <- create_qq_extra(choices, subquestions)
+  qq_extra <- create_qq_extra(choices, subquestions, clean_html)
   
   return(qq_extra)
   
