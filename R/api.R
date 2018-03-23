@@ -310,14 +310,14 @@ qapi_response_export <- function(survey_id) {
 
   ## Get col names from csv file
   csv_colnames <- read.csv(unz(zip_file, csv_file), header = TRUE,
-                     quote="\"", sep=",")
+                     quote="\"", sep=",", stringsAsFactors = FALSE)
   csv_colnames <- names(csv_colnames)
 
   ## Get csv data and append col names. This is so the DF will have all
   ## cols be the correct data type as in the csv the first two rows
   ## of each column are a string which will throw off the parser
   csv_df <- read.csv(unz(zip_file, csv_file), header = TRUE,
-                     quote="\"", sep=",", skip = 2)
+                     quote="\"", sep=",", skip = 2, stringsAsFactors = FALSE)
   names(csv_df) <- csv_colnames
 
   ## Skip first two lines of DF; we don't need 'em!
@@ -334,8 +334,9 @@ qapi_response_export <- function(survey_id) {
 qapi_list_surveys <- function() {
   list_resp <- qapi_request("GET",
                             "surveys")
-
-  list_df <- do.call(rbind.data.frame, list_resp$result$elements)
+  # this coerces a list to a df however it also creates factors. 
+  list_df <- do.call(rbind.data.frame, list_resp$result$elements) %>% 
+    mutate_at(vars(1:4), funs(as.character))
 
   return(list_df)
 }

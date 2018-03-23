@@ -5,6 +5,18 @@
 Qtoolkit is an `R` package that makes it easier to get, process and visualize Qualtrics survey data. `Qtoolkit` allows you to connect to the
 Qualtrics API in order to download surveys, view survey questions and associated metadata and quickly analyze and plot the data outputs.
 
+
+## Install Qtoolkit
+
+First, install the package from the Earth Lab github organization.
+
+
+```
+## Install qtoolkit (requires `devtools` package)
+install.packages("devtools")
+devtools::install_github("earthlab/qtoolkit")
+```
+
 ## Get API Data
 
 To access the Qualtrics API, you need to do the following:
@@ -60,16 +72,6 @@ Check out the vignette on authentication to read about the other ways to pass
 your key to qualtrics.
 
 ## Start Using qtoolkit
-
-Once you have the authentication information above, you are read to work with `Qtoolkit`.
-First, install the package from the Earth Lab github organization.
-
-
-```
-## Install qtoolkit (requires `devtools` package)
-install.packages("devtools")
-devtools::install_github("earthlab/qtoolkit")
-```
 
 Next, connect to the api. If you added the authentication to your `.Rprofile` file
 following the instructions above, you can connect as follows:
