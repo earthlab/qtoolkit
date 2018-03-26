@@ -30,18 +30,35 @@ get_choices <- function(choices_df, choice_wrap = NULL, choice_factor = FALSE, c
                                          nchar = choice_wrap)
   }
   
+  
+  
   # if they chose to turn on factors for choices
   if (choice_factor) {
-    # make sure df is sorted by order - but offer the ablity to reverse this order
-    # there is probably a more clever way to handle this argument as the code below is redundant
-    if (!choice_rev) {
-    choices <- choices %>% 
-      arrange(choice_order) %>% 
-      mutate(choice_text = factor(choice_text, levels = choice_text))
+    # this will only be a problem IF the choices are different... so first is there a col column. this means there is more than 1 matrix
+    
+    if (!is.null(choices_df$col == NULL)) { 
+      # then test to see if the choice_text is the same or different. Am i overcomplicating this? feels like i am
+      
+      # test for ALL sub data frames of choices to be equal. if that test fails, then don't implement factors
+      unique_rows <- choices_df %>% 
+        select(choice_text)
+        unique()
+        
+        nrow(choices_df) == nrow(unique_rows)
+      print("You are trying to process a side by side matrix that have multiple sets of choices. Two sets of factors can not be stored 
+            in the same column. Thus factors were not set. Please consider plotting these matrices separately.")
       } else {
-    choices <- choices %>% 
-      arrange(desc(choice_order)) %>% 
-      mutate(choice_text = factor(choice_text, levels = choice_text))
+      # make sure df is sorted by order - but offer the ablity to reverse this order
+      # there is probably a more clever way to handle this argument as the code below is redundant
+      if (!choice_rev) {
+      choices <- choices %>% 
+        arrange(choice_order) %>% 
+        mutate(choice_text = factor(choice_text, levels = choice_text))
+        } else {
+      choices <- choices %>% 
+        arrange(desc(choice_order)) %>% 
+        mutate(choice_text = factor(choice_text, levels = choice_text))
+        }
       }
   }
   
@@ -110,6 +127,9 @@ get_question_resp <- function(quest_obj,
     # get choices and wrap / convert to factor if specified to do so
     ## TO DO:: we could consider adding a second column that is a factor with split text...
     ## need to consider all use cases here...split text could be annoying for some applications
+    
+    # here because we have a sbs - we have 2 sets of choices
+    # but we don't have the column which will make it very hard to join
   choices <- get_choices(quest_obj$choices, 
                          choice_wrap, 
                          choice_rev = choice_rev,
