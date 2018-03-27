@@ -13,5 +13,5 @@ get_subq(subq_df)
 data.frame of subquestions ready to be merged with the main question df
 }
 \description{
-Cleaned data.frame all ready for plotting
+Get all of the sub questions associated with a question. Returns a cleaned data.frame all ready for plotting
 }
