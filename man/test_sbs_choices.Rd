@@ -4,7 +4,7 @@
 \alias{test_sbs_choices}
 \title{FUN: test_sbs_choices
 This function will test to see whether the choicses for each side by side matrix are the same
-If they are different, then it will not allow factors to be created. If they are the same for 
+If they are different, then it will not allow factors to be created. If they are the same for
 each matrix then factors can be applied.}
 \usage{
 test_sbs_choices(choices_list)
@@ -18,6 +18,6 @@ boolean TRUE if the choices in each matrix are the same FALSE if not
 \description{
 FUN: test_sbs_choices
 This function will test to see whether the choicses for each side by side matrix are the same
-If they are different, then it will not allow factors to be created. If they are the same for 
+If they are different, then it will not allow factors to be created. If they are the same for
 each matrix then factors can be applied.
 }
