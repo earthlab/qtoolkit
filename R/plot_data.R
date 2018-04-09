@@ -168,6 +168,7 @@ get_subq <- function(subq_df){
 #'
 #' @importFrom assertthat assert_that
 #' @importFrom tidyr gather
+#' @importFrom tidyr drop_na
 #'
 #' @param quest_obj the object within the qsurvey object that contains all relevant information to the question including choicses and subquestions IF those are relevant
 #' @return Nice data.frame ready for pretty plotting.
@@ -177,8 +178,8 @@ get_subq <- function(subq_df){
 gather_responses <- function(quest_obj) {
   # gather responses into 2 cols
   fin_resp_g <- quest_obj$responses %>%
-    gather(key = "qnum", value = "response", -ResponseID) %>%
-    drop_na()
+    tidyr::gather(key = "qnum", value = "response", -ResponseID) %>%
+    tidyr::drop_na()
   return(fin_resp_g)
 }
 
@@ -251,9 +252,9 @@ get_question_resp <- function(quest_obj,
     # note a warning is returned here if there are text responses in the data
     # it would be good to make this more user friendly warning in the future!
     fin_resp <-  fin_resp_g %>%
-      separate(qnum, sep = "_", c("quest", "recode")) %>%
-      mutate(recode = as.integer(recode)) %>%
-      left_join(choices, by = c("recode" = "recode"))
+      separate(qnum, sep = "_", c("quest", "subqnum")) %>%
+      mutate(subqnum = as.integer(subqnum)) %>%
+      left_join(choices, by = c("subqnum" = "choice_code"))
 
   } else {
     # if it's not MC or SBS... generic cleanup
