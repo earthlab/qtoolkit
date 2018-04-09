@@ -59,7 +59,7 @@ q54 %>%
 ## ------------------------------------------------------------------------
 
 # here, we just grab a df that has the data stacked in a way that is easily plottable
-q54 <- get_question_resp(q54_obj, 
+q54 <- get_question_resp(q54_obj,
                          choice_factor = TRUE, choice_rev = TRUE)
 # it could be nice to calculate a percentage to with some function or argument
 q54 %>%

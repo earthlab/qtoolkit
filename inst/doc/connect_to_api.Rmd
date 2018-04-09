@@ -1,10 +1,10 @@
 ---
-title: "QToolkit 101: Get Survey Data"
+title: "Connect to the Qualtrics API using Qtoolkit"
 author: "Leah Wasser & Davey Levin"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{QToolkit 101: Get Survey Data}
+  %\VignetteIndexEntry{Connect to the Qualtrics API using Qtoolkit}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -1,10 +1,10 @@
 ---
-title: "QToolkit 101: Get Survey Data"
+title: "Get Started Working with Survey Data: Matrix and Multiple Choice Questions"
 author: "Leah Wasser"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{QToolkit 101: Get Survey Data}
+  %\VignetteIndexEntry{Get Started Working with Survey Data: Matrix and Multiple Choice Questions}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
