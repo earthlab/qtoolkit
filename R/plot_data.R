@@ -100,7 +100,8 @@ get_choices <- function(choices_df,
   choices <- choices_df %>%
     dplyr::select(quest_order, recode, choice_text) %>%
     mutate(recode = as.integer(recode)) %>%
-    rename(choice_order = quest_order)
+    rename(choice_order = quest_order,
+           choice_code = recode)
 
   # if they chose to wrap for choices for prettier plotting
   if (!is.null(choice_wrap)) {
@@ -258,7 +259,7 @@ get_question_resp <- function(quest_obj,
                              choice_factor = choice_factor)
     # if there are choices join to the data
      fin_resp <- fin_resp %>%
-       left_join(choices, by = c("response" = "recode"))
+       left_join(choices, by = c("response" = "choice_code"))
     }
 
     if (!is.null(quest_obj$subquestions)){
@@ -267,6 +268,8 @@ get_question_resp <- function(quest_obj,
       # merge subquestions with df for plotting
       # this may need to be rewritten for various question types...
       fin_resp <- fin_resp %>%
+        separate(qnum, into =  c("qnum", "subqnum"), sep = "_") %>% 
+        mutate(subqnum = as.integer(subqnum)) %>% 
         left_join(subq, by = c("subqnum" = "subqnum"))
     }
   }
