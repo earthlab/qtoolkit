@@ -172,7 +172,7 @@ question_responses %>%
 
 Now create a plot with facets for each sub question in your question matrix.
 
-```{r}
+```{r ques-resp-plot, fig.height=6, fig.width = 8}
 # it could be nice to calculate a percentage to with some function or argument
 question_responses %>%
   group_by(quest_text, choice_text) %>%
@@ -199,7 +199,7 @@ element that is most often a category). In this case we are plotting using a sca
 
 Note that `\n` represents a line break in `R`.
 
-```{r}
+```{r, fig.height = 6, fig.width = 8}
 
 question_responses <- get_question_resp(q4,
                                         quest_wrap = NULL,
@@ -222,7 +222,7 @@ The above looks a lot nicer. However, now we may want to flip the order of our
 likert scale for plotting. You can do that using the argument `choice_rev`
 which accepts a boolean TRUE or FALSE.
 
-```{r}
+```{r, fig.height=6, fig.width = 8}
 question_responses <- get_question_resp(q4,
                                         quest_wrap = NULL,
                                         choice_wrap = 8,

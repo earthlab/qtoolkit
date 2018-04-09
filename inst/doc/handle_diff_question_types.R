@@ -42,7 +42,7 @@ my_survey_ob$questions$QID54$subquestions
 q54 <- get_question_resp(q54_obj)
 head(q54)
 
-## ------------------------------------------------------------------------
+## ---- fig.height=6, fig.width = 8----------------------------------------
 
 # it could be nice to calculate a percentage to with some function or argument
 q54 %>%
@@ -56,7 +56,7 @@ q54 %>%
        y = "Count")
 
 
-## ------------------------------------------------------------------------
+## ---- fig.height=6, fig.width = 8----------------------------------------
 
 # here, we just grab a df that has the data stacked in a way that is easily plottable
 q54 <- get_question_resp(q54_obj,
@@ -73,7 +73,7 @@ q54 %>%
        y = "Count")
 
 
-## ------------------------------------------------------------------------
+## ---- fig.height=6, fig.width = 8----------------------------------------
 
 # here, we just grab a df that has the data stacked in a way that is easily plottable
 q55 <- get_question_resp(my_survey_ob$questions$QID55)
@@ -89,7 +89,7 @@ q55 %>%
        y = "Count")
 
 
-## ------------------------------------------------------------------------
+## ---- fig.height=6, fig.width = 8----------------------------------------
 
 # here, we just grab a df that has the data stacked in a way that is easily plottable
 q55 <- get_question_resp(my_survey_ob$questions$QID55,
@@ -105,7 +105,7 @@ q55[[1]] %>%
        y = "Count")
 
 
-## ------------------------------------------------------------------------
+## ---- fig.height=6, fig.width = 8----------------------------------------
 
 # here, we just grab a df that has the data stacked in a way that is easily plottable
 q55 <- get_question_resp(my_survey_ob$questions$QID55,
