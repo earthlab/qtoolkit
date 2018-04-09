@@ -1,9 +1,10 @@
 ## ----connect, message=FALSE----------------------------------------------
-options(stringsAsFactors = FALSE)
+#options(stringsAsFactors = FALSE)
 library(qtoolkit)
 # still working on only importing the pipe element in the package.
 # https://github.com/sckott/analogsea/issues/32
 # note currently i need to just load the pipe and also stringsasfactors as false
+library(ggplot2)
 library(dplyr)
 library(tidyr)
 
@@ -20,8 +21,9 @@ head(all_surveys)
 ## ----get-survey----------------------------------------------------------
 # define survey id variable, then get survey object
 survey_id <- "SV_1SUpa4C4UGkZnWB"
-# currently there are some issues with factors that i need to fix via hard code
-# if strings as factors isn't false, then you get warnings as R coerces to char
+# note the warnings are OK. it's just a reminder to me that some questions are not
+# processed "custom" i can turn these off once i'm confident that things work
+# across all question types!
 my_survey_ob <- qsurvey(survey_id)
 
 ## ----view-all-questions--------------------------------------------------
@@ -66,7 +68,7 @@ question_responses <- get_question_resp(q4)
 head(question_responses)
 
 ## ------------------------------------------------------------------------
-library(ggplot2)
+
 # it could be nice to calculate a percentage to with some function or argument 
 question_responses %>%
   group_by(quest_text, choice_text) %>%
