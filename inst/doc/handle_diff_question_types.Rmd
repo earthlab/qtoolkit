@@ -1,0 +1,201 @@
+---
+title: "QToolkit 101: Use Different Question Types - Matrices"
+author: "Leah Wasser"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{QToolkit 101: Get Survey Data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Survey Question Types
+
+So you've gotten the API all setup and now you need to plot data from different
+types of questions. In this vignette, we will focus on the matrix and side-by-side (SBS)
+matrix type.
+
+NOTE: it's not recommended to use SBS matrices given the high cognitave load. 
+It makes taking a survey harder for your participants. With that said, we used 
+them ourselves before knowing better and want to ensure things don't break 
+on any survey that you process! So support is provided here to work with them!
+
+To begin load all of the libraries
+```{r connect, message=FALSE}
+library(qtoolkit)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+```
+
+Connect to the API if you haven't already!
+
+```{r eval = FALSE}
+## Connect to Qualtrics API
+qapi_connect()
+```
+
+And select a survey.
+
+```{r view-survey-list}
+# get a list of all surveys connected to your account / api token
+all_surveys <- list_surveys()
+# define survey id variable, then get survey object
+survey_id <- "SV_1SUpa4C4UGkZnWB"
+my_survey_ob <- qsurvey(survey_id,
+                        clean_html = TRUE)
+# view all questions
+all_questions <- my_survey_ob$questionList
+all_questions
+```
+
+Let's work with QID54 which is a side-by-side matrix.
+SBS matrices are more complex objects because it is several matrices that appear
+next to each other in a survey. 
+
+```{r}
+# get responses and question information for qid71.
+q54_obj <- my_survey_ob$questions$QID54
+str(q54_obj)
+```
+
+Notice here the choices in the SBS matrix are all the same! this makes analysis easy
+although this type of question is still hard for your participants to take!
+
+```{r}
+# get responses and question information for qid71.
+my_survey_ob$questions$QID54$choices
+```
+
+Note below that the matrix question type has more complex column headers. This
+structure represents the question number `Q46`, the column number or matrix number `1`
+and then the sub question number `_3`.
+
+So 
+
+`Q46.1_1`
+
+represents question 46 (as labeled in your survey) which has the unique id QID54 in qualtrics.
+.1 represents matrix number one in a side by side matrix and _1 represents the first 
+question in that matrix. 
+
+```{r}
+# get responses and question information for qid71.
+my_survey_ob$questions$QID54$responses
+
+```
+
+Here are the sub questions in each matrix. Lucky for us all subquestions are 
+always the same in a qualtrics SBS question type. 
+
+```{r}
+# get responses and question information for qid71.
+my_survey_ob$questions$QID54$subquestions
+```
+
+```{r}
+# here, we just grab a df that has the data stacked in a way that is easily plottable
+q54 <- get_question_resp(q54_obj)
+head(q54)
+```
+
+Now you can plot! Below we plot responses for each matrix in it's own ggplot facet. 
+
+```{r}
+
+# it could be nice to calculate a percentage to with some function or argument
+q54 %>%
+  group_by(quest_text, choice_text, matrix_num) %>%
+  count() %>%
+  ggplot(aes(x = choice_text, y = n)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~matrix_num, nrow = 2) +
+  labs(title = "How Often You Use a Tool",
+       x = "Frequency of Use",
+       y = "Count")
+
+```
+
+Now create a plot with facets for each sub question in your question matrix.
+
+** note that choice_rev isn't working yet. 
+
+```{r}
+
+# here, we just grab a df that has the data stacked in a way that is easily plottable
+q54 <- get_question_resp(q54_obj, 
+                         choice_factor = TRUE, choice_rev = TRUE)
+# it could be nice to calculate a percentage to with some function or argument
+q54 %>%
+  group_by(quest_text, choice_text, matrix_num) %>%
+  count() %>%
+  ggplot(aes(x = choice_text, y = n)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~matrix_num, nrow = 2) +
+  labs(title = "How Often You Use a Tool\n Factors turned on",
+       x = "Frequency of Use",
+       y = "Count")
+
+```
+
+Next, let's explore a SBS matrix where the answer options are different.
+First, we import and plot the data with factors set to `FALSE` (the default option).
+
+```{r}
+
+# here, we just grab a df that has the data stacked in a way that is easily plottable
+q55 <- get_question_resp(my_survey_ob$questions$QID55)
+# it could be nice to calculate a percentage to with some function or argument
+q55 %>%
+  group_by(quest_text, choice_text, matrix_num) %>%
+  count() %>%
+  ggplot(aes(x = choice_text, y = n)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~matrix_num, nrow = 2) +
+  labs(title = "How Often You Use a Tool\n Factors turned on",
+       x = "Frequency of Use",
+       y = "Count")
+
+```
+
+If you turn factors ON then it will return a list of data.frames - one data frame 
+for each col in a SBS matrix. 
+
+```{r}
+
+# here, we just grab a df that has the data stacked in a way that is easily plottable
+q55 <- get_question_resp(my_survey_ob$questions$QID55,
+                         choice_factor = TRUE)
+# it could be nice to calculate a percentage to with some function or argument
+q55[[1]] %>%
+  group_by(quest_text, choice_text) %>%
+  count() %>%
+  ggplot(aes(x = choice_text, y = n)) +
+  geom_bar(stat = "identity") +
+  labs(title = "How Often You Use a Tool\n Factors turned on",
+       x = "Frequency of Use",
+       y = "Count")
+
+```
+
+Switch the order of the factor options using choice_rev. 
+
+```{r}
+
+# here, we just grab a df that has the data stacked in a way that is easily plottable
+q55 <- get_question_resp(my_survey_ob$questions$QID55,
+                         choice_factor = TRUE,
+                         choice_rev = TRUE)
+# it could be nice to calculate a percentage to with some function or argument
+q55[[1]] %>%
+  group_by(quest_text, choice_text) %>%
+  count() %>%
+  ggplot(aes(x = choice_text, y = n)) +
+  geom_bar(stat = "identity") +
+  labs(title = "How Often You Use a Tool\n Factors turned on",
+       x = "Frequency of Use",
+       y = "Count")
+
+```
+
+In this example, you can't use factors AND plot all matrices in one pretty plot. 

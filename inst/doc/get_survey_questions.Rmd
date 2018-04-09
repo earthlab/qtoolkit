@@ -96,8 +96,8 @@ my_survey_ob$questionList
 ```
 
 Note that here, qtoolkit by default cleans up any manually formatting in your questions.
-Manually formatting will appear as html. If you want to keep the html, simply set 
-string_html to FALSE. 
+Manually formatting will appear as html. If you want to keep the html, simply set
+string_html to FALSE.
 
 ```{r}
 my_survey_ob <- qsurvey(survey_id,
@@ -158,7 +158,7 @@ responses
 
 ```{r}
 
-# it could be nice to calculate a percentage to with some function or argument 
+# it could be nice to calculate a percentage to with some function or argument
 question_responses %>%
   group_by(quest_text, choice_text) %>%
   count() %>%
@@ -170,10 +170,10 @@ question_responses %>%
 
 ```
 
-Now create a plot with facets for each sub question in your question matrix. 
+Now create a plot with facets for each sub question in your question matrix.
 
 ```{r}
-# it could be nice to calculate a percentage to with some function or argument 
+# it could be nice to calculate a percentage to with some function or argument
 question_responses %>%
   group_by(quest_text, choice_text) %>%
   count() %>%
@@ -188,17 +188,22 @@ question_responses %>%
 
 Finally you may want to clean up the plot. Issues with this plot include:
 
-1. it's hard to read text on the x axis as the text is too long and 
+1. it's hard to read text on the x axis as the text is too long and
 2. the choices are not in the correct order
 
-You can use the choice_wrap and choice_factor to fix this easily.
+You can use the `choice_wrap` and `choice_factor` to fix this.
+
+1. Set `choice_factor` to TRUE to ensure that the answers are a factor (an ordered
+element that is most often a category). In this case we are plotting using a scale so there is an order associated with the responses.
+2. `choice_wrap`: This argument allows you to wrap the choice responses. Select a number (an integer) which will represent the number of characters to insert a line break. So if you set it to 8, you will get a line break every 8 characters.
+
+Note that `\n` represents a line break in `R`.
 
 ```{r}
-# it would be nice if this took the choices and made them factors
-# should this be a default for a likert scale?
-question_responses <- get_question_resp(q4, 
-                                        quest_wrap = NULL, 
-                                        choice_wrap = 8, 
+
+question_responses <- get_question_resp(q4,
+                                        quest_wrap = NULL,
+                                        choice_wrap = 8,
                                         choice_factor = TRUE)
 head(question_responses)
 
@@ -213,16 +218,14 @@ question_responses %>%
        y = "Count")
 ```
 
-The above looks a lot nicer. However, now we may want to flip the order of our 
-likert scale for plotting. You can do that using the argument `choice_rev` 
+The above looks a lot nicer. However, now we may want to flip the order of our
+likert scale for plotting. You can do that using the argument `choice_rev`
 which accepts a boolean TRUE or FALSE.
 
 ```{r}
-# it would be nice if this took the choices and made them factors
-# should this be a default for a likert scale?
-question_responses <- get_question_resp(q4, 
-                                        quest_wrap = NULL, 
-                                        choice_wrap = 8, 
+question_responses <- get_question_resp(q4,
+                                        quest_wrap = NULL,
+                                        choice_wrap = 8,
                                         choice_factor = TRUE,
                                         choice_rev = TRUE)
 head(question_responses)

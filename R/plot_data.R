@@ -18,15 +18,17 @@ test_sbs_choices <- function(choices_list){
   all_same <- TRUE
   for (i in 1:(length(choices_list) - 1)) {
     if (all_same == FALSE) break
+
+    all_same <- identical(choices_list[[i]]$choice_text, choices_list[[i+1]]$choice_text)
     # if the df are different lengths, they can't be converted
     # you can't compare 2 df of different lengths which is why this is here
-    if (!nrow(choices_list[[i]]) == nrow(choices_list[[i+1]])){
-      print("the choice df are different lengths - i can not create factors")
-      all_same <- FALSE
-    } else {
-      # if the df length is the same, test to see if the options are diff
-      all_same <- all(choices_list[[i]] == choices_list[[i+1]])
-    }
+    # if (!nrow(choices_list[[i]]) == nrow(choices_list[[i+1]])){
+    #   print("the choice df are different lengths - i can not create factors")
+    #   all_same <- FALSE
+    # } else {
+    #   # if the df length is the same, test to see if the options are diff
+    #   all_same <- all(choices_list[[i]] == choices_list[[i+1]])
+    # }
   }
   return(all_same)
 }
@@ -41,6 +43,7 @@ test_sbs_choices <- function(choices_list){
 #' @importFrom assertthat is.string
 #' @importFrom dplyr mutate
 #' @importFrom dplyr arrange
+#' @importFrom magrittr %>%
 #'
 #' @param choices_df choices sub object (DF) pulled from the qsurvey object.
 #' @param choice_factor BOOL, whether you want choicse to be a factor or not DEFAULT = FALSE
@@ -56,14 +59,14 @@ choice_to_factor <- function(df,
   # Turn on factors if factors are selected as an arg
   # make sure choices are sorted by order - rev this order if argument = TRUE
   if (!choice_rev) {
-    df_fact <- df %>%
+    df_arr <- df %>%
       arrange(choice_order)
   } else {
-    df_fact <- df %>%
+    df_arr <- df %>%
       arrange(desc(choice_order))
   }
   # apply factors to the df
-  df_fact <- df %>%
+  df_fact <- df_arr %>%
     mutate(choice_text = factor(choice_text, levels = unique(choice_text)))
   return(df_fact)
 }
@@ -230,7 +233,11 @@ get_question_resp <- function(quest_obj,
   # flexibility !!
 
   if (quest_obj$meta$type == "SBS") {
-    fin_resp <- get_SBS(quest_obj, quest_wrap, choice_wrap, choice_factor, choice_rev)
+    fin_resp <- get_SBS(quest_obj,
+                        quest_wrap,
+                        choice_wrap,
+                        choice_factor,
+                        choice_rev)
 
   } else if (quest_obj$meta$type == "MC") {
     # gather responses
@@ -268,8 +275,8 @@ get_question_resp <- function(quest_obj,
       # merge subquestions with df for plotting
       # this may need to be rewritten for various question types...
       fin_resp <- fin_resp %>%
-        separate(qnum, into =  c("qnum", "subqnum"), sep = "_") %>% 
-        mutate(subqnum = as.integer(subqnum)) %>% 
+        separate(qnum, into =  c("qnum", "subqnum"), sep = "_") %>%
+        mutate(subqnum = as.integer(subqnum)) %>%
         left_join(subq, by = c("subqnum" = "subqnum"))
     }
   }

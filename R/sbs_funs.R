@@ -52,7 +52,9 @@ get_SBS <- function(quest_obj,
   } else {
     fin_resp <- fin_resp %>% 
       left_join(choices, by = c("col_response" = "col_response")) %>% 
-      left_join(subq, by = c("subqnum" = "subqnum"))
+      left_join(subq, by = c("subqnum" = "subqnum")) %>% # cleanup dup col names
+      select(-col.y) %>% 
+      rename(matrix_num = col.x)
   }
   
   return(fin_resp)
@@ -100,7 +102,10 @@ clean_resp_sbs <- function(df) {
 #'
 
 get_choices_sbs <- function(choices_df, 
-                            choice_wrap = NULL, choice_factor = FALSE, choice_rev = FALSE) {
+                            choice_wrap = NULL, 
+                            choice_factor = FALSE, 
+                            choice_rev = FALSE) {
+  
   # get choices columns (including col which is the sbs matrix num)
   choices <- choices_df %>%
     dplyr::select(quest_order, recode, choice_text, col) %>%
@@ -124,8 +129,7 @@ get_choices_sbs <- function(choices_df,
     
     # warning to the user if they turned on factors in a SBS matrix
     if (all_same == FALSE) {
-      print("You are trying to process a side by side matrix that have multiple sets of choices. Two sets of factors can not be stored in the 
-            same column. Thus i've created a list containing a df for each matrix in the sbs matrix.")
+      print("You are trying to process a side by side matrix that have multiple sets of choices. I've created a list containing a df for each matrix in the sbs matrix.")
       #split_choices <- list()
       # then apply factors to the choice column for each element in the list
       # prolly can avoid a loop but... not a big time savings
