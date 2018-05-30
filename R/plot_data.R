@@ -251,10 +251,21 @@ get_question_resp <- function(quest_obj,
     # clean multiple choice data
     # note a warning is returned here if there are text responses in the data
     # it would be good to make this more user friendly warning in the future!
+    
+    # if it's a multple choice with a single selection and no sub questions:
+    if (quest_obj$meta$selector == "SAVR") {
+      fin_resp <-  fin_resp_g %>%
+        mutate(response = as.integer(response)) %>%
+        left_join(choices, by = c("response" = "choice_code"))
+    } else {
+      # this is ok. When there is multiple answer multiple choice, each _ represents
+      # an answer type that the user checks. A check gets a value of 1. this this is 
+      # techincally their response value. 
     fin_resp <-  fin_resp_g %>%
       separate(qnum, sep = "_", c("quest", "subqnum")) %>%
       mutate(subqnum = as.integer(subqnum)) %>%
       left_join(choices, by = c("subqnum" = "choice_code"))
+    }
 
   } else {
     # if it's not MC or SBS... generic cleanup
@@ -267,6 +278,7 @@ get_question_resp <- function(quest_obj,
                              choice_factor = choice_factor)
     # if there are choices join to the data
      fin_resp <- fin_resp %>%
+       mutate(response = as.integer(response)) %>%
        left_join(choices, by = c("response" = "choice_code"))
     }
 
