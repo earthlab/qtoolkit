@@ -276,6 +276,14 @@ get_question_resp <- function(quest_obj,
                              choice_wrap = choice_wrap,
                              choice_rev = choice_rev,
                              choice_factor = choice_factor)
+    # if there is "other / text responses filter it out 
+    tf <- grepl("TEXT", fin_resp$qnum)
+    if (any(tf)) {
+      print("Removing text answers in the responses. You can access them from the qsurvey object")
+      # remove text resposes from the data
+      fin_resp <- fin_resp[!tf,]
+    }
+    
     # if there are choices join to the data
      fin_resp <- fin_resp %>%
        mutate(response = as.integer(response)) %>%
