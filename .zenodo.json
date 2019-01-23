@@ -1,0 +1,21 @@
+{
+  "creators": [
+    {
+      "affiliation": "Earth Lab, University of Colorado - Boulder",
+      "name": "Wasser, Leah",
+      "orcid": "0000-0002-8177-6550"
+    },
+    {
+      "affiliation": "",
+      "name": "Levin, David",
+      "orcid": ""
+    }
+  ],
+  "keywords": [
+    "assessment",
+    "Qualtrics",
+    "survey"
+  ],
+  "license": "MIT",
+  "upload_type": "software"
+}
