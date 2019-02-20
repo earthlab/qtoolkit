@@ -6,7 +6,6 @@
       "orcid": "0000-0002-8177-6550"
     },
     {
-      "affiliation": "",
       "name": "Levin, David"
     }
   ],
@@ -15,6 +14,6 @@
     "Qualtrics",
     "survey"
   ],
-  "license": "MIT",
+  "license": "BSD-3-Clause",
   "upload_type": "software"
 }
