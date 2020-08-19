@@ -4,8 +4,13 @@
 \alias{get_question_resp}
 \title{get_data}
 \usage{
-get_question_resp(quest_obj, quest_wrap = NULL, choice_wrap = NULL,
-  choice_factor = FALSE, choice_rev = FALSE)
+get_question_resp(
+  quest_obj,
+  quest_wrap = NULL,
+  choice_wrap = NULL,
+  choice_factor = FALSE,
+  choice_rev = FALSE
+)
 }
 \arguments{
 \item{quest_obj}{the object within the qsurvey object that contains all relevant information to the question including choicses and subquestions IF those are relevant}

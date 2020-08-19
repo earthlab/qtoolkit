@@ -4,8 +4,12 @@
 \alias{get_choices_sbs}
 \title{FUN: get_choices_sbs}
 \usage{
-get_choices_sbs(choices_df, choice_wrap = NULL, choice_factor = FALSE,
-  choice_rev = FALSE)
+get_choices_sbs(
+  choices_df,
+  choice_wrap = NULL,
+  choice_factor = FALSE,
+  choice_rev = FALSE
+)
 }
 \arguments{
 \item{choices_df}{choices sub object (DF) pulled from the qsurvey object.}

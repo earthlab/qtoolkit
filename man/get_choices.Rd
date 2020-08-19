@@ -4,8 +4,12 @@
 \alias{get_choices}
 \title{get_choices}
 \usage{
-get_choices(choices_df, choice_wrap = NULL, choice_factor = FALSE,
-  choice_rev = FALSE)
+get_choices(
+  choices_df,
+  choice_wrap = NULL,
+  choice_factor = FALSE,
+  choice_rev = FALSE
+)
 }
 \arguments{
 \item{choices_df}{choices sub object (DF) pulled from the qsurvey object.}

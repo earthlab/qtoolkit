@@ -4,8 +4,14 @@
 \alias{qapi_request}
 \title{qapi_request}
 \usage{
-qapi_request(verb, method, data = list(), content.as = "text",
-  auth = NULL, all.results = TRUE)
+qapi_request(
+  verb,
+  method,
+  data = list(),
+  content.as = "text",
+  auth = NULL,
+  all.results = TRUE
+)
 }
 \arguments{
 \item{verb}{Request type (GET, POST, ...)}

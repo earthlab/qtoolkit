@@ -17,7 +17,7 @@ is.obj.type <- function(var, type) {
 #' Wrap long strings at x characters for pretty plotting and data viz.
 #'
 #' @param string of type char: the string that needs to be wrapped
-#' @param nchar number of characters to insert a \n after - default: 35
+#' @param nchar number of characters to insert a line break after - default: 35
 #'
 #' @return a string with line breaks at every n_char characters
 #' @export

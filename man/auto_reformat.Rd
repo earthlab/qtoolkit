@@ -4,8 +4,14 @@
 \alias{auto_reformat}
 \title{auto_reformat}
 \usage{
-auto_reformat(df, prefix = "", rename.cols = TRUE, reorder.rows = TRUE,
-  reorder.cols = TRUE, strip.html = FALSE)
+auto_reformat(
+  df,
+  prefix = "",
+  rename.cols = TRUE,
+  reorder.rows = TRUE,
+  reorder.cols = TRUE,
+  strip.html = FALSE
+)
 }
 \arguments{
 \item{df}{data.frame to rename and reorder columns}

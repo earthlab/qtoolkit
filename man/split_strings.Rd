@@ -9,7 +9,7 @@ split_strings(string, nchar = 35)
 \arguments{
 \item{string}{of type char: the string that needs to be wrapped}
 
-\item{nchar}{number of characters to insert a \n after - default: 35}
+\item{nchar}{number of characters to insert a line break after - default: 35}
 }
 \value{
 a string with line breaks at every n_char characters

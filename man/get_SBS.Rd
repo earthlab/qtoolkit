@@ -4,8 +4,13 @@
 \alias{get_SBS}
 \title{FUN: get_sbs}
 \usage{
-get_SBS(quest_obj, quest_wrap = NULL, choice_wrap = NULL,
-  choice_factor = FALSE, choice_rev = FALSE)
+get_SBS(
+  quest_obj,
+  quest_wrap = NULL,
+  choice_wrap = NULL,
+  choice_factor = FALSE,
+  choice_rev = FALSE
+)
 }
 \arguments{
 \item{quest_obj}{the object within the qsurvey object that contains all relevant information to the question including choicses and subquestions IF those are relevant}
