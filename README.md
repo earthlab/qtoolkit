@@ -1,5 +1,9 @@
 [![DOI](https://zenodo.org/badge/107568212.svg)](https://zenodo.org/badge/latestdoi/107568212)
 
+**IMPORTANT** This package is not currently being maintained. The goal of this package was to eventually merge with the widely used qualtRics package that covers the API access via the text csv file download. This package takes that process a step forward by downloading the entire survey data structure via the API as an object. This would allow a user to create a fully reproducible report based upon the original survey structure. 
+
+If you are interested in working on either building on top of the qualtRics package or better yet integrating this into the package, please contact earth.lab@colorado.edu.
+
 # qtoolkit
 
 Qtoolkit is an `R` package that makes it easier to get, process and visualize Qualtrics survey data. `Qtoolkit` allows you to connect to the
